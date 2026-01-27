@@ -2,54 +2,81 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <title>Santi Slayer - 2026 Master Edition</title>
+    <title>Santi Slayer - Ultimate Pro 2026</title>
     <style>
-        body { margin: 0; background: #1a1a1a; color: white; font-family: 'Segoe UI', Tahoma, sans-serif; overflow: hidden; }
-        canvas { background: #1b5e20; display: block; }
-        #ui { position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.8); padding: 15px; border-radius: 10px; border: 2px solid #555; pointer-events: none; min-width: 250px; }
-        #xp-bar-container { width: 100%; height: 10px; background: #333; border-radius: 5px; margin-bottom: 10px; }
-        #xp-bar { height: 100%; background: #3498db; width: 0%; border-radius: 5px; transition: 0.3s; }
-        #slots { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 10px; }
-        .slot { width: 32px; height: 32px; border: 1px solid #f1c40f; background: #222; display: flex; align-items: center; justify-content: center; font-size: 16px; position: relative; }
-        .slot small { position: absolute; bottom: -2px; right: 1px; font-size: 8px; color: #0f0; }
-        .btn-back { position: absolute; top: 10px; right: 10px; padding: 10px 20px; background: #c0392b; color: white; text-decoration: none; border-radius: 5px; font-weight: bold; z-index: 1000; border: 2px solid white; }
-        #upgrade-menu { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #2c3e50; padding: 30px; border: 5px solid #f1c40f; display: none; text-align: center; border-radius: 20px; z-index: 2000; width: 550px; }
-        .upgrade-container { display: flex; justify-content: center; gap: 15px; }
-        .upgrade-card { background: #34495e; padding: 15px; cursor: pointer; border-radius: 10px; width: 150px; transition: 0.2s; border: 2px solid transparent; }
-        .upgrade-card:hover { background: #1abc9c; border-color: white; }
+        body { margin: 0; background: #000; color: white; font-family: 'Segoe UI', Arial, sans-serif; overflow: hidden; }
+        canvas { display: block; background: #27ae60; }
+        #ui { position: absolute; top: 20px; left: 20px; background: rgba(0,0,0,0.85); padding: 20px; border-radius: 12px; border: 2px solid #f1c40f; pointer-events: none; min-width: 280px; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
+        .xp-container { width: 100%; height: 12px; background: #444; border-radius: 6px; margin: 10px 0; border: 1px solid #777; overflow: hidden; }
+        #xp-bar { height: 100%; background: linear-gradient(90deg, #3498db, #2ecc71); width: 0%; transition: width 0.4s ease-out; }
+        #slots { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 15px; }
+        .slot { width: 42px; height: 42px; border: 2px solid #f1c40f; background: #222; display: flex; align-items: center; justify-content: center; font-size: 22px; border-radius: 8px; position: relative; }
+        .slot small { position: absolute; bottom: -2px; right: 2px; font-size: 11px; color: #fff; text-shadow: 1px 1px #000; font-weight: bold; }
+        .btn-back { position: absolute; top: 20px; right: 20px; padding: 12px 24px; background: #e74c3c; color: white; text-decoration: none; border-radius: 8px; font-weight: bold; border: 3px solid #c0392b; transition: 0.3s; z-index: 1000; pointer-events: all; }
+        .btn-back:hover { background: #ff4d4d; transform: scale(1.05); }
+        #upgrade-menu { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #2c3e50; padding: 40px; border: 6px solid #f1c40f; display: none; text-align: center; border-radius: 25px; z-index: 2000; width: 650px; box-shadow: 0 0 100px rgba(0,0,0,0.8); pointer-events: all; }
+        .upgrade-container { display: flex; justify-content: center; gap: 20px; }
+        .upgrade-card { background: #34495e; padding: 20px; cursor: pointer; border-radius: 15px; width: 180px; transition: 0.3s; border: 2px solid transparent; }
+        .upgrade-card:hover { background: #1abc9c; border-color: white; transform: translateY(-10px); }
+        .upgrade-card b { display: block; margin: 10px 0; font-size: 18px; color: #f1c40f; }
+        #stats { font-size: 14px; color: #bdc3c7; margin-top: 5px; }
     </style>
 </head>
 <body>
 
     <div id="ui">
-        <div id="xp-bar-container"><div id="xp-bar"></div></div>
-        <div style="font-size: 18px;">LV <span id="lvl">1</span> | Zeit: <span id="timer">0</span>s</div>
-        <div style="color: #e74c3c;">HP: <span id="hpTxt">100</span></div>
+        <div style="font-size: 22px; font-weight: bold; color: #f1c40f;">LEVEL <span id="lvl">1</span></div>
+        <div class="xp-container"><div id="xp-bar"></div></div>
+        <div id="stats">Kills: <span id="score">0</span> | Zeit: <span id="timer">0</span>s</div>
+        <div style="margin-top: 10px; font-weight: bold;">HP: <span id="hpTxt" style="color: #e74c3c;">100</span> / <span id="maxHpTxt">100</span></div>
         <div id="slots"></div>
     </div>
 
-    <a href="https://rhinogamescom.wordpress.com" class="btn-back">GET BACK</a>
+    <a href="https://rhinogamescom.wordpress.com" class="btn-back">⬅ ZURÜCK ZU RHINO GAMES</a>
 
     <div id="upgrade-menu">
-        <h2 style="color: #f1c40f;">LEVEL UP!</h2>
+        <h1 style="color: #f1c40f; margin-top: 0; text-shadow: 2px 2px #000;">VERBESSERUNG WÄHLEN</h1>
+        <p>Deine Macht wächst! Wähle weise:</p>
         <div id="upgrade-options" class="upgrade-container"></div>
     </div>
 
     <canvas id="gameCanvas"></canvas>
 
     <script>
+        /** 
+         * SANTI SLAYER - ENGINE 2026
+         * Eine umfassende Rogue-lite Implementierung
+         */
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
-        const WORLD_SIZE = 4000;
+        const WORLD_SIZE = 5000;
         let canvasW, canvasH;
-        function resize() { canvasW = canvas.width = window.innerWidth; canvasH = canvas.height = window.innerHeight; }
-        window.addEventListener('resize', resize); resize();
 
-        let player = { x: WORLD_SIZE/2, y: WORLD_SIZE/2, speed: 4.5, hp: 100, maxHp: 100, xp: 0, nextXp: 100, lvl: 1, slots: [] };
-        let camera = { x: 0, y: 0 }, keys = {}, enemies = [], projectiles = [], gems = [], env = [], effects = [];
-        let gameActive = true, lastShot = 0, lastLightning = 0, mySkills = {};
+        // --- GAME STATE ---
+        let player = {
+            x: WORLD_SIZE/2, y: WORLD_SIZE/2, 
+            speed: 5, hp: 100, maxHp: 100, 
+            xp: 0, nextXp: 100, lvl: 1, 
+            score: 0, startTime: Date.now(),
+            size: 28, slots: []
+        };
+        
+        let camera = { x: 0, y: 0 };
+        let keys = {};
+        let enemies = [], projectiles = [], gems = [], env = [], effects = [];
+        let gameActive = true;
+        let lastShot = 0, lastLightning = 0;
+        let mySkills = {};
 
-        // Die 20 Upgrades
+        // --- INPUT MANAGER (FIX FÜR STEUERUNG) ---
+        const initInput = () => {
+            window.addEventListener('keydown', e => { keys[e.key.toLowerCase()] = true; });
+            window.addEventListener('keyup', e => { keys[e.key.toLowerCase()] = false; });
+            // Fokus-Sicherung
+            window.addEventListener('mousedown', () => { if(gameActive) window.focus(); });
+        };
+
+        // --- UPGRADE DEFINITIONEN (20 STÜCK) ---
         const ALL_SKILLS = [
             {id:'fire', name:'Tempo', icon:'🏹'}, {id:'bolt', name:'Blitz', icon:'⚡'}, {id:'bunny', name:'Hase', icon:'🐇'},
             {id:'spd', name:'Schuhe', icon:'👟'}, {id:'reg', name:'Heilung', icon:'🍎'}, {id:'arm', name:'Schild', icon:'🛡️'},
@@ -60,145 +87,330 @@
             {id:'wall', name:'Mauer', icon:'🧱'}, {id:'luck', name:'Glück', icon:'🍀'}
         ];
 
-        // Die 15 Gegnertypen
-        const ENEMY_TYPES = [
-            {n:'Wurm', col:'#2ecc71', sz:10, hp:3, spd:2}, {n:'Schlange', col:'#27ae60', sz:12, hp:6, spd:2.2},
-            {n:'Wolf', col:'#95a5a6', sz:18, hp:12, spd:3.5}, {n:'Wespe', col:'#f1c40f', sz:8, hp:5, spd:5},
-            {n:'Bär', col:'#5d4037', sz:35, hp:40, spd:1.5}, {n:'Skorpion', col:'#d35400', sz:20, hp:25, spd:2.8},
-            {n:'Eber', col:'#795548', sz:25, hp:35, spd:4}, {n:'Golem', col:'#34495e', sz:45, hp:150, spd:0.8},
-            {n:'Geist', col:'rgba(255,255,255,0.5)', sz:20, hp:20, spd:3}, {n:'Oger', col:'#1b5e20', sz:40, hp:80, spd:2},
-            {n:'Dämon', col:'#c0392b', sz:30, hp:100, spd:3.2}, {n:'Spinne', col:'#000', sz:15, hp:25, spd:4.5},
-            {n:'Tentakel', col:'#8e44ad', sz:25, hp:60, spd:2.5}, {n:'Echse', col:'#16a085', sz:22, hp:50, spd:3.8},
-            {n:'Boss-Auge', col:'#fff', sz:60, hp:500, spd:1}
-        ];
+        // --- MAP GENERIERUNG (V2 STYLE) ---
+        function initWorld() {
+            for(let i=0; i<120; i++) {
+                env.push({
+                    x: Math.random() * WORLD_SIZE,
+                    y: Math.random() * WORLD_SIZE,
+                    type: Math.random() > 0.4 ? 'tree' : 'stone',
+                    size: 30 + Math.random() * 40,
+                    seed: Math.random() * 10
+                });
+            }
+        }
 
-        for(let i=0; i<80; i++) env.push({x:Math.random()*WORLD_SIZE, y:Math.random()*WORLD_SIZE, t:Math.random()>0.5?'tree':'stone', sz:25+Math.random()*20});
-
-        window.addEventListener('keydown', e => keys[e.key.toLowerCase()] = true);
-        window.addEventListener('keyup', e => keys[e.key.toLowerCase()] = false);
-
-        function spawn() {
+        // --- GEGNER LOGIK (GRAPHISCH HOCHWERTIG) ---
+        function spawnEnemy() {
             if(!gameActive) return;
             let time = (Date.now() - player.startTime)/1000;
-            let idx = Math.min(14, Math.floor(time / 15)); 
-            let a = Math.random()*Math.PI*2;
-            let x = player.x + Math.cos(a)*800, y = player.y + Math.sin(a)*800;
-            let t = ENEMY_TYPES[idx];
-            enemies.push({...t, x, y, curHp: t.hp});
-        }
-        setInterval(spawn, 800);
+            let level = Math.min(14, Math.floor(time / 20));
+            
+            let angle = Math.random() * Math.PI * 2;
+            let dist = 800;
+            let x = player.x + Math.cos(angle) * dist;
+            let y = player.y + Math.sin(angle) * dist;
 
+            const types = [
+                {n:'Graswurm', col:'#2ecc71', type:'snake', hp:5},
+                {n:'Waldnatter', col:'#27ae60', type:'snake', hp:12},
+                {n:'Wolf', col:'#7f8c8d', type:'beast', hp:20},
+                {n:'Wildschwein', col:'#a04000', type:'beast', hp:40},
+                {n:'Riesenspinne', col:'#2c3e50', type:'beast', hp:30},
+                {n:'Sumpfmonster', col:'#1b5e20', type:'snake', hp:60},
+                {n:'Feuersalamander', col:'#e67e22', type:'snake', hp:80},
+                {n:'Bär', col:'#5d4037', type:'beast', hp:150},
+                {n:'Eiswolf', col:'#d6eaf8', type:'beast', hp:100},
+                {n:'Schattenläufer', col:'#1a1a1a', type:'beast', hp:200},
+                {n:'Dämonenschlange', col:'#c0392b', type:'snake', hp:250},
+                {n:'Felsengolem', col:'#34495e', type:'beast', hp:500},
+                {n:'Elite-Wächter', col:'#f1c40f', type:'beast', hp:400},
+                {n:'Hydra', col:'#8e44ad', type:'snake', hp:800},
+                {n:'SANTI KILLER (BOSS)', col:'#fff', type:'boss', hp:2500}
+            ];
+
+            let t = types[level];
+            enemies.push({
+                ...t, x, y, curHp: t.hp, maxHp: t.hp,
+                spd: 2 + Math.random() * 2,
+                sz: 15 + (level * 2),
+                segments: Array(t.type === 'snake' ? 10 : 0).fill({x, y}),
+                anim: 0
+            });
+        }
+
+        // --- UPGRADE SYSTEM ---
         function levelUp() {
             gameActive = false;
             const menu = document.getElementById('upgrade-menu');
-            const cont = document.getElementById('upgrade-options');
-            cont.innerHTML = '';
-            let pool = ALL_SKILLS.sort(() => 0.5-Math.random()).slice(0, 3);
-            pool.forEach(s => {
+            const container = document.getElementById('upgrade-options');
+            container.innerHTML = '';
+            
+            let pool = [...ALL_SKILLS].sort(() => 0.5 - Math.random()).slice(0, 3);
+            
+            pool.forEach(skill => {
                 let card = document.createElement('div');
                 card.className = 'upgrade-card';
-                card.innerHTML = `<div style="font-size:30px">${s.icon}</div><b>${s.name}</b><br>LV ${ (mySkills[s.id]||0)+1 }`;
-                card.onclick = () => {
-                    if(!mySkills[s.id]) player.slots.push(s);
-                    mySkills[s.id] = (mySkills[s.id]||0)+1;
-                    if(s.id==='reg') player.hp = Math.min(player.maxHp, player.hp+20);
-                    updateUI(); gameActive = true; menu.style.display = 'none'; window.focus();
+                let lv = (mySkills[skill.id] || 0);
+                card.innerHTML = `<div style="font-size:45px">${skill.icon}</div><b>${skill.name}</b>Level ${lv + 1}`;
+                
+                card.onclick = (e) => {
+                    e.stopPropagation();
+                    if(!mySkills[skill.id]) {
+                        if(player.slots.length < 8) player.slots.push(skill);
+                        else { alert("Slots voll!"); return; }
+                    }
+                    mySkills[skill.id] = (mySkills[skill.id] || 0) + 1;
+                    
+                    // Sofort-Effekte
+                    if(skill.id === 'reg') player.hp = Math.min(player.maxHp, player.hp + 30);
+                    if(skill.id === 'size') { player.maxHp += 20; player.hp += 20; player.size += 2; }
+                    
+                    document.getElementById('upgrade-menu').style.display = 'none';
+                    gameActive = true;
+                    updateUI();
+                    window.focus(); // Zwingt den Fokus zurück für die Steuerung!
+                    requestAnimationFrame(gameLoop);
                 };
-                cont.appendChild(card);
+                container.appendChild(card);
             });
             menu.style.display = 'block';
         }
 
         function updateUI() {
-            document.getElementById('slots').innerHTML = player.slots.map(s => `<div class="slot">${s.icon}<small>${mySkills[s.id]}</small></div>`).join('');
             document.getElementById('lvl').innerText = player.lvl;
-            document.getElementById('xp-bar').style.width = (player.xp/player.nextXp*100)+'%';
+            document.getElementById('score').innerText = player.score;
             document.getElementById('hpTxt').innerText = Math.floor(player.hp);
+            document.getElementById('maxHpTxt').innerText = player.maxHp;
+            document.getElementById('xp-bar').style.width = (player.xp / player.nextXp * 100) + '%';
+            
+            const sDiv = document.getElementById('slots');
+            sDiv.innerHTML = '';
+            player.slots.forEach(s => {
+                sDiv.innerHTML += `<div class="slot">${s.icon}<small>${mySkills[s.id]}</small></div>`;
+            });
         }
 
-        function update() {
-            if(!gameActive) return;
-            let time = Math.floor((Date.now() - player.startTime)/1000);
-            document.getElementById('timer').innerText = time;
+        // --- RENDER FUNKTIONEN ---
+        function drawWorld() {
+            // Gras-Gitter
+            ctx.strokeStyle = "rgba(0,0,0,0.15)";
+            ctx.lineWidth = 2;
+            for(let x=0; x<=WORLD_SIZE; x+=250) {
+                ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, WORLD_SIZE); ctx.stroke();
+            }
+            for(let y=0; y<=WORLD_SIZE; y+=250) {
+                ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(WORLD_SIZE, y); ctx.stroke();
+            }
+            
+            // Border
+            ctx.strokeStyle = "#c0392b";
+            ctx.lineWidth = 15;
+            ctx.strokeRect(0, 0, WORLD_SIZE, WORLD_SIZE);
 
-            let spd = player.speed + (mySkills.spd||0)*0.5;
-            if(keys['w'] && player.y > 0) player.y -= spd;
-            if(keys['s'] && player.y < WORLD_SIZE) player.y += spd;
-            if(keys['a'] && player.x > 0) player.x -= spd;
-            if(keys['d'] && player.x < WORLD_SIZE) player.x += spd;
+            // Deko-Objekte
+            env.forEach(o => {
+                ctx.save();
+                if(o.type === 'tree') {
+                    ctx.fillStyle = '#145a32';
+                    ctx.beginPath(); ctx.arc(o.x, o.y, o.size, 0, Math.PI*2); ctx.fill();
+                    ctx.fillStyle = '#1b5e20';
+                    ctx.beginPath(); ctx.arc(o.x - 5, o.y - 5, o.size * 0.6, 0, Math.PI*2); ctx.fill();
+                } else {
+                    ctx.fillStyle = '#7f8c8d';
+                    ctx.beginPath(); ctx.roundRect(o.x, o.y, o.size, o.size * 0.8, 8); ctx.fill();
+                }
+                ctx.restore();
+            });
+        }
 
-            camera.x = player.x - canvasW/2; camera.y = player.y - canvasH/2;
-
-            // Blitz Skill (⚡)
-            if(mySkills.bolt && Date.now()-lastLightning > 4000/mySkills.bolt) {
-                let t = enemies.find(e => Math.hypot(e.x-player.x, e.y-player.y) < 500);
-                if(t) { t.curHp -= 10; effects.push({x1:player.x, y1:player.y, x2:t.x, y2:t.y, l:10}); lastLightning = Date.now(); }
+        function drawEnemy(en) {
+            ctx.fillStyle = en.col;
+            en.anim += 0.1;
+            
+            if(en.type === 'snake') {
+                en.segments.forEach((s, i) => {
+                    let sSize = en.sz * (1 - i/15);
+                    ctx.beginPath(); ctx.arc(s.x, s.y, sSize, 0, Math.PI*2); ctx.fill();
+                    if(i === 0) { // Augen
+                        ctx.fillStyle = "white";
+                        ctx.beginPath(); ctx.arc(s.x-4, s.y-4, 3, 0, 6.28); ctx.fill();
+                        ctx.beginPath(); ctx.arc(s.x+4, s.y-4, 3, 0, 6.28); ctx.fill();
+                        ctx.fillStyle = en.col;
+                    }
+                });
+            } else {
+                // Biest-Grafik
+                ctx.beginPath(); ctx.arc(en.x, en.y, en.sz, 0, Math.PI*2); ctx.fill();
+                // Ohren/Details
+                ctx.beginPath(); ctx.arc(en.x-en.sz, en.y-en.sz/2, en.sz/3, 0, 6.28); ctx.fill();
+                ctx.beginPath(); ctx.arc(en.x+en.sz, en.y-en.sz/2, en.sz/3, 0, 6.28); ctx.fill();
+                // Augen
+                ctx.fillStyle = "red";
+                ctx.beginPath(); ctx.arc(en.x-8, en.y-5, 4, 0, 6.28); ctx.fill();
+                ctx.beginPath(); ctx.arc(en.x+8, en.y-5, 4, 0, 6.28); ctx.fill();
             }
 
-            // Sichtfeld Auto-Schuss (🏹)
-            if(Date.now()-lastShot > 600/(mySkills.fire||1)) {
-                let target = enemies.find(e => Math.hypot(e.x-player.x, e.y-player.y) < 500);
-                if(target) {
-                    let a = Math.atan2(target.y-player.y, target.x-player.x);
-                    projectiles.push({x:player.x, y:player.y, vx:Math.cos(a)*12, vy:Math.sin(a)*12});
+            // HP Bar
+            ctx.fillStyle = "rgba(0,0,0,0.5)";
+            ctx.fillRect(en.x - 20, en.y - en.sz - 15, 40, 5);
+            ctx.fillStyle = "#e74c3c";
+            ctx.fillRect(en.x - 20, en.y - en.sz - 15, 40 * (en.curHp / en.maxHp), 5);
+        }
+
+        // --- HAUPTSCHLEIFE ---
+        function gameLoop() {
+            if(!gameActive) return;
+
+            // Zeit-Update
+            let elapsed = Math.floor((Date.now() - player.startTime) / 1000);
+            document.getElementById('timer').innerText = elapsed;
+
+            // Player Movement
+            let currentSpd = player.speed + (mySkills.spd || 0) * 0.6;
+            if(keys['w'] && player.y > 0) player.y -= currentSpd;
+            if(keys['s'] && player.y < WORLD_SIZE) player.y += currentSpd;
+            if(keys['a'] && player.x > 0) player.x -= currentSpd;
+            if(keys['d'] && player.x < WORLD_SIZE) player.x += currentSpd;
+
+            camera.x = player.x - window.innerWidth/2;
+            camera.y = player.y - window.innerHeight/2;
+
+            // Kampf-Logik (Nur Schießen wenn Gegner im Bild)
+            let viewDist = 700;
+            if(Date.now() - lastShot > 650 / (mySkills.fire || 1)) {
+                let nearby = enemies.find(e => Math.hypot(e.x - player.x, e.y - player.y) < viewDist);
+                if(nearby) {
+                    let angle = Math.atan2(nearby.y - player.y, nearby.x - player.x);
+                    projectiles.push({
+                        x: player.x, y: player.y,
+                        vx: Math.cos(angle) * 14,
+                        vy: Math.sin(angle) * 14,
+                        life: 100
+                    });
                     lastShot = Date.now();
                 }
             }
 
-            enemies.forEach((en, i) => {
-                let dist = Math.hypot(player.x-en.x, player.y-en.y);
-                let a = Math.atan2(player.y-en.y, player.x-en.x);
-                en.x += Math.cos(a)*en.spd; en.y += Math.sin(a)*en.spd;
+            // Blitz-Skill
+            if(mySkills.bolt && Date.now() - lastLightning > 4000 / mySkills.bolt) {
+                let target = enemies[Math.floor(Math.random() * enemies.length)];
+                if(target && Math.hypot(target.x - player.x, target.y - player.y) < 600) {
+                    target.curHp -= 15 * mySkills.bolt;
+                    effects.push({x1: player.x, y1: player.y, x2: target.x, y2: target.y, t: 15});
+                    lastLightning = Date.now();
+                }
+            }
 
-                if(dist < en.sz+20) { player.hp -= (0.3/(mySkills.arm||1)); updateUI(); }
-                projectiles.forEach((p, pi) => {
-                    if(Math.hypot(p.x-en.x, p.y-en.y) < en.sz+10) { en.curHp -= 5; projectiles.splice(pi,1); }
-                });
+            // Update Gegner
+            enemies.forEach((en, i) => {
+                let d = Math.hypot(player.x - en.x, player.y - en.y);
+                let a = Math.atan2(player.y - en.y, player.x - en.x);
+                en.x += Math.cos(a) * en.spd;
+                en.y += Math.sin(a) * en.spd;
+
+                if(en.type === 'snake') {
+                    en.segments.unshift({x: en.x, y: en.y});
+                    en.segments.pop();
+                }
+
+                if(d < en.sz + player.size) {
+                    player.hp -= (0.4 / (mySkills.arm || 1));
+                    updateUI();
+                }
 
                 if(en.curHp <= 0) {
-                    gems.push({x:en.x, y:en.y}); enemies.splice(i,1);
+                    gems.push({x: en.x, y: en.y, val: 20 + (levelUp * 5)});
+                    enemies.splice(i, 1);
+                    player.score++;
                 }
             });
 
+            // Update Gems & XP
             gems.forEach((g, i) => {
-                let d = Math.hypot(player.x-g.x, player.y-g.y);
-                let range = 100 + (mySkills.mag||0)*50;
-                if(d < range) {
-                    g.x += (player.x-g.x)*0.2; g.y += (player.y-g.y)*0.2;
-                    if(d < 20) {
-                        gems.splice(i,1); player.xp += 25 * (mySkills.gold||1);
-                        if(player.xp >= player.nextXp) { player.lvl++; player.xp=0; player.nextXp*=1.2; levelUp(); }
+                let d = Math.hypot(player.x - g.x, player.y - g.y);
+                let magnet = 120 + (mySkills.mag || 0) * 60;
+                if(d < magnet) {
+                    g.x += (player.x - g.x) * 0.15;
+                    g.y += (player.y - g.y) * 0.15;
+                    if(d < 25) {
+                        player.xp += g.val * (mySkills.gold ? 1.5 : 1);
+                        gems.splice(i, 1);
+                        if(player.xp >= player.nextXp) {
+                            player.lvl++;
+                            player.xp = 0;
+                            player.nextXp *= 1.3;
+                            levelUp();
+                        }
                         updateUI();
                     }
                 }
             });
 
-            if(player.hp <= 0) location.reload();
-            draw(); requestAnimationFrame(update);
+            // Projektile fliegen lassen
+            projectiles.forEach((p, i) => {
+                p.x += p.vx; p.y += p.vy;
+                enemies.forEach(en => {
+                    if(Math.hypot(p.x - en.x, p.y - en.y) < en.sz + 10) {
+                        en.curHp -= 6 + (mySkills.crit && Math.random() > 0.8 ? 10 : 0);
+                        projectiles.splice(i, 1);
+                    }
+                });
+                if(p.life-- < 0) projectiles.splice(i, 1);
+            });
+
+            if(player.hp <= 0) { alert("Santi Slayer wurde besiegt! Score: " + player.score); location.reload(); }
+
+            draw();
+            requestAnimationFrame(gameLoop);
         }
 
         function draw() {
-            ctx.clearRect(0,0,canvasW,canvasH); ctx.save(); ctx.translate(-camera.x, -camera.y);
-            // Border
-            ctx.strokeStyle="red"; ctx.lineWidth=10; ctx.strokeRect(0,0,WORLD_SIZE,WORLD_SIZE);
-            // Env
-            env.forEach(o => { ctx.fillStyle=o.t==='tree'?'#145a32':'#7f8c8d'; ctx.beginPath(); ctx.arc(o.x,o.y,o.sz,0,Math.PI*2); ctx.fill(); });
-            // Gems
-            ctx.fillStyle="#3498db"; gems.forEach(g => { ctx.beginPath(); ctx.arc(g.x,g.y,6,0,6.28); ctx.fill(); });
-            // Player
-            ctx.fillStyle="#2980b9"; ctx.beginPath(); ctx.arc(player.x,player.y,25,0,6.28); ctx.fill();
-            // Enemies
-            enemies.forEach(en => { 
-                ctx.fillStyle=en.col; ctx.beginPath(); ctx.arc(en.x,en.y,en.sz,0,6.28); ctx.fill();
-                ctx.fillStyle="red"; ctx.fillRect(en.x-15, en.y-en.sz-10, 30*(en.curHp/en.hp), 4);
+            canvasW = canvas.width = window.innerWidth;
+            canvasH = canvas.height = window.innerHeight;
+            ctx.clearRect(0, 0, canvasW, canvasH);
+            
+            ctx.save();
+            ctx.translate(-camera.x, -camera.y);
+
+            drawWorld();
+
+            // Edelsteine
+            ctx.fillStyle = "#3498db";
+            ctx.shadowBlur = 10; ctx.shadowColor = "#3498db";
+            gems.forEach(g => { ctx.beginPath(); ctx.arc(g.x, g.y, 6, 0, 6.28); ctx.fill(); });
+            ctx.shadowBlur = 0;
+
+            // Effekte
+            effects.forEach((ef, i) => {
+                ctx.strokeStyle = "cyan"; ctx.lineWidth = 4;
+                ctx.beginPath(); ctx.moveTo(ef.x1, ef.y1); ctx.lineTo(ef.x2, ef.y2); ctx.stroke();
+                ef.t--; if(ef.t < 0) effects.splice(i, 1);
             });
-            // Lightning
-            effects.forEach((ef,i) => { ctx.strokeStyle="cyan"; ctx.lineWidth=3; ctx.beginPath(); ctx.moveTo(ef.x1,ef.y1); ctx.lineTo(ef.x2,ef.y2); ctx.stroke(); ef.l--; if(ef.l<0) effects.splice(i,1); });
-            // Shots
-            ctx.fillStyle="yellow"; projectiles.forEach(p => { p.x+=p.vx; p.y+=p.vy; ctx.beginPath(); ctx.arc(p.x,p.y,5,0,6.28); ctx.fill(); });
+
+            // Spieler
+            ctx.fillStyle = "#3498db";
+            ctx.beginPath(); ctx.arc(player.x, player.y, player.size, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = "white"; // "Gesicht" für Spieler
+            ctx.beginPath(); ctx.arc(player.x-8, player.y-5, 4, 0, 6.28); ctx.fill();
+            ctx.beginPath(); ctx.arc(player.x+8, player.y-5, 4, 0, 6.28); ctx.fill();
+
+            // Gegner
+            enemies.forEach(en => drawEnemy(en));
+
+            // Schüsse
+            ctx.fillStyle = "#f1c40f";
+            projectiles.forEach(p => { ctx.beginPath(); ctx.arc(p.x, p.y, 6, 0, 6.28); ctx.fill(); });
+
             ctx.restore();
         }
-        player.startTime = Date.now(); updateUI(); update();
+
+        // --- START ---
+        initInput();
+        initWorld();
+        updateUI();
+        gameLoop();
+
     </script>
 </body>
 </html>
