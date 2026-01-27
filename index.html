@@ -3,113 +3,159 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Santi Slayer - Rogue-lite</title>
+    <title>Santi Slayer - Rogue-lite Pro</title>
     <style>
-        body { margin: 0; background: #1a1a1a; color: white; font-family: sans-serif; overflow: hidden; display: flex; flex-direction: column; align-items: center; }
-        canvas { background: #2c3e50; display: block; border: 3px solid #7f8c8d; cursor: crosshair; }
-        #ui { position: absolute; top: 10px; left: 10px; pointer-events: none; }
-        .btn-back { position: absolute; top: 10px; right: 10px; padding: 10px 20px; background: #e74c3c; color: white; text-decoration: none; border-radius: 5px; font-weight: bold; }
-        #upgrade-menu { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.9); padding: 20px; border-radius: 10px; display: none; text-align: center; pointer-events: all; }
-        button { padding: 10px 20px; margin: 10px; cursor: pointer; background: #27ae60; border: none; color: white; font-weight: bold; }
+        body { margin: 0; background: #1a1a1a; color: white; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; overflow: hidden; }
+        canvas { background: #2ecc71; display: block; cursor: crosshair; }
+        #ui { position: absolute; top: 20px; left: 20px; pointer-events: none; background: rgba(0,0,0,0.5); padding: 15px; border-radius: 10px; border: 2px solid #fff; }
+        .btn-back { position: absolute; top: 20px; right: 20px; padding: 12px 24px; background: #e74c3c; color: white; text-decoration: none; border-radius: 8px; font-weight: bold; border: 2px solid #c0392b; transition: 0.3s; }
+        .btn-back:hover { background: #ff4d4d; transform: scale(1.1); }
+        #upgrade-menu { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.95); padding: 30px; border-radius: 15px; display: none; text-align: center; border: 3px solid #f1c40f; }
+        button { padding: 12px 25px; margin: 10px; cursor: pointer; background: #27ae60; border: none; color: white; font-weight: bold; border-radius: 5px; font-size: 16px; }
+        button:hover { background: #2ecc71; }
     </style>
 </head>
 <body>
 
     <div id="ui">
-        <div>Kills: <span id="score">0</span></div>
-        <div>HP: <span id="hp">100</span></div>
+        <div style="font-size: 24px; color: #f1c40f;">Kills: <span id="score">0</span></div>
+        <div style="font-size: 18px;">HP: <span id="hp">100</span> / 100</div>
     </div>
 
-    <a href="https://rhinogamescom.wordpress.com" class="btn-back">Get Back</a>
+    <a href="https://rhinogamescom.wordpress.com" class="btn-back">⬅ GET BACK</a>
 
     <canvas id="gameCanvas"></canvas>
 
     <div id="upgrade-menu">
-        <h2>Upgrade wählen!</h2>
-        <button onclick="upgrade('damage')">Schaden +1</button>
-        <button onclick="upgrade('speed')">Tempo +1</button>
-        <button onclick="upgrade('hp')">Heilen +20</button>
+        <h2 style="color: #f1c40f;">Level Up! Wähle einen Bonus</h2>
+        <button onclick="upgrade('damage')">Feuerrate erhöhen</button>
+        <button onclick="upgrade('speed')">Lauftempo +1</button>
+        <button onclick="upgrade('hp')">Vollheilung</button>
     </div>
 
     <script>
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
 
-        let player = { x: canvas.width/2, y: canvas.height/2, size: 20, speed: 4, hp: 100, damage: 1 };
+        // Welt-Einstellungen
+        const WORLD_SIZE = 3000;
+        let canvasW, canvasH;
+        function resize() {
+            canvasW = canvas.width = window.innerWidth;
+            canvasH = canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        let player = { x: WORLD_SIZE/2, y: WORLD_SIZE/2, size: 25, speed: 5, hp: 100, fireRate: 500 };
+        let camera = { x: 0, y: 0 };
         let projectiles = [];
         let enemies = [];
+        let environment = [];
         let score = 0;
         let keys = {};
+        let lastShot = 0;
         let gameActive = true;
+
+        // Bäume und Steine generieren
+        for(let i=0; i<60; i++) {
+            environment.push({
+                x: Math.random() * WORLD_SIZE,
+                y: Math.random() * WORLD_SIZE,
+                type: Math.random() > 0.5 ? 'tree' : 'stone',
+                size: 30 + Math.random() * 40
+            });
+        }
 
         window.addEventListener('keydown', e => keys[e.key.toLowerCase()] = true);
         window.addEventListener('keyup', e => keys[e.key.toLowerCase()] = false);
-        window.addEventListener('mousedown', shoot);
 
-        function shoot(e) {
-            if(!gameActive) return;
-            const angle = Math.atan2(e.clientY - player.y, e.clientX - player.x);
-            projectiles.push({ x: player.x, y: player.y, vx: Math.cos(angle) * 7, vy: Math.sin(angle) * 7 });
+        function spawnSnake() {
+            if(!gameActive || enemies.length > 30) return;
+            const x = Math.random() * WORLD_SIZE;
+            const y = Math.random() * WORLD_SIZE;
+            // Nur spawnen, wenn weit weg vom Spieler
+            if(Math.hypot(player.x - x, player.y - y) < 600) return spawnSnake();
+            
+            enemies.push({
+                segments: Array.from({length: 8}, () => ({x, y})),
+                speed: 2 + Math.random() * 2,
+                color: `hsl(${100 + Math.random() * 40}, 70%, 40%)`
+            });
         }
-
-        function spawnEnemy() {
-            if(!gameActive) return;
-            const edge = Math.floor(Math.random() * 4);
-            let x, y;
-            if(edge === 0) { x = Math.random() * canvas.width; y = -20; }
-            else if(edge === 1) { x = canvas.width + 20; y = Math.random() * canvas.height; }
-            else if(edge === 2) { x = Math.random() * canvas.width; y = canvas.height + 20; }
-            else { x = -20; y = Math.random() * canvas.height; }
-            enemies.push({ x, y, size: 10, speed: 2, hp: 1 });
-        }
-        setInterval(spawnEnemy, 1000);
+        setInterval(spawnSnake, 1500);
 
         function upgrade(type) {
-            if(type === 'damage') player.damage += 1;
-            if(type === 'speed') player.speed += 0.5;
-            if(type === 'hp') player.hp = Math.min(100, player.hp + 20);
+            if(type === 'damage') player.fireRate = Math.max(150, player.fireRate - 70);
+            if(type === 'speed') player.speed += 1;
+            if(type === 'hp') player.hp = 100;
             document.getElementById('upgrade-menu').style.display = 'none';
             gameActive = true;
-            requestAnimationFrame(update);
         }
 
         function update() {
             if(!gameActive) return;
 
-            // Bewegung
+            // Player movement
             if(keys['w'] && player.y > 0) player.y -= player.speed;
-            if(keys['s'] && player.y < canvas.height) player.y += player.speed;
+            if(keys['s'] && player.y < WORLD_SIZE) player.y += player.speed;
             if(keys['a'] && player.x > 0) player.x -= player.speed;
-            if(keys['d'] && player.x < canvas.width) player.x += player.speed;
+            if(keys['d'] && player.x < WORLD_SIZE) player.x += player.speed;
 
-            // Projectiles
+            // Camera follow
+            camera.x = player.x - canvasW / 2;
+            camera.y = player.y - canvasH / 2;
+
+            // Auto-Schuss-Logik
+            const now = Date.now();
+            if(now - lastShot > player.fireRate && enemies.length > 0) {
+                // Finde nächsten Gegner
+                let closest = null;
+                let minDist = Infinity;
+                enemies.forEach(en => {
+                    const d = Math.hypot(player.x - en.segments[0].x, player.y - en.segments[0].y);
+                    if(d < minDist) { minDist = d; closest = en; }
+                });
+
+                if(closest && minDist < 600) {
+                    const angle = Math.atan2(closest.segments[0].y - player.y, closest.segments[0].x - player.x);
+                    projectiles.push({ x: player.x, y: player.y, vx: Math.cos(angle) * 10, vy: Math.sin(angle) * 10 });
+                    lastShot = now;
+                }
+            }
+
+            // Projectiles update
             projectiles.forEach((p, pi) => {
                 p.x += p.vx; p.y += p.vy;
-                if(p.x < 0 || p.x > canvas.width || p.y < 0 || p.y > canvas.height) projectiles.splice(pi, 1);
+                if(p.x < 0 || p.x > WORLD_SIZE || p.y < 0 || p.y > WORLD_SIZE) projectiles.splice(pi, 1);
             });
 
-            // Enemies
+            // Enemies (Snakes) update
             enemies.forEach((en, ei) => {
-                const angle = Math.atan2(player.y - en.y, player.x - en.x);
-                en.x += Math.cos(angle) * en.speed;
-                en.y += Math.sin(angle) * en.speed;
+                let head = en.segments[0];
+                const angle = Math.atan2(player.y - head.y, player.x - head.x);
+                
+                // Kopf bewegt sich zum Spieler
+                let newHead = {
+                    x: head.x + Math.cos(angle) * en.speed,
+                    y: head.y + Math.sin(angle) * en.speed
+                };
+                en.segments.unshift(newHead);
+                en.segments.pop();
 
-                // Collision Player-Enemy (Schlangen-Attacke)
-                const dist = Math.hypot(player.x - en.x, player.y - en.y);
-                if(dist < player.size) {
-                    player.hp -= 0.5;
-                    if(player.hp <= 0) location.reload(); // Restart bei Tod
+                // Collision Player
+                if(Math.hypot(player.x - head.x, player.y - head.y) < player.size) {
+                    player.hp -= 0.3;
+                    if(player.hp <= 0) location.reload();
                 }
 
-                // Collision Projectile-Enemy
+                // Collision mit Projectile
                 projectiles.forEach((p, pi) => {
-                    if(Math.hypot(p.x - en.x, p.y - en.y) < 15) {
+                    if(Math.hypot(p.x - head.x, p.y - head.y) < 20) {
                         enemies.splice(ei, 1);
                         projectiles.splice(pi, 1);
                         score++;
-                        if(score % 10 === 0) { // Upgrade alle 10 Kills
+                        if(score % 10 === 0) {
                             gameActive = false;
                             document.getElementById('upgrade-menu').style.display = 'block';
                         }
@@ -124,16 +170,51 @@
         }
 
         function draw() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            // Player
+            ctx.clearRect(0, 0, canvasW, canvasH);
+            ctx.save();
+            ctx.translate(-camera.x, -camera.y);
+
+            // Draw World Grid
+            ctx.strokeStyle = "rgba(0,0,0,0.1)";
+            for(let i=0; i<=WORLD_SIZE; i+=100) {
+                ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, WORLD_SIZE); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(WORLD_SIZE, i); ctx.stroke();
+            }
+
+            // Draw Environment (Trees & Stones)
+            environment.forEach(obj => {
+                ctx.fillStyle = obj.type === 'tree' ? '#1b5e20' : '#7f8c8d';
+                ctx.beginPath();
+                if(obj.type === 'tree') {
+                    ctx.arc(obj.x, obj.y, obj.size, 0, Math.PI*2);
+                } else {
+                    ctx.rect(obj.x, obj.y, obj.size, obj.size);
+                }
+                ctx.fill();
+            });
+
+            // Draw Player
             ctx.fillStyle = '#3498db';
+            ctx.shadowBlur = 15; ctx.shadowColor = '#3498db';
             ctx.beginPath(); ctx.arc(player.x, player.y, player.size, 0, Math.PI*2); ctx.fill();
-            // Projectiles
-            ctx.fillStyle = 'yellow';
-            projectiles.forEach(p => { ctx.beginPath(); ctx.arc(p.x, p.y, 5, 0, Math.PI*2); ctx.fill(); });
-            // Enemies (Kleine Schlangen/Punkte)
-            ctx.fillStyle = '#2ecc71';
-            enemies.forEach(en => { ctx.beginPath(); ctx.arc(en.x, en.y, en.size, 0, Math.PI*2); ctx.fill(); });
+            ctx.shadowBlur = 0;
+
+            // Draw Projectiles
+            ctx.fillStyle = '#f1c40f';
+            projectiles.forEach(p => {
+                ctx.beginPath(); ctx.arc(p.x, p.y, 6, 0, Math.PI*2); ctx.fill();
+            });
+
+            // Draw Snakes
+            enemies.forEach(en => {
+                ctx.fillStyle = en.color;
+                en.segments.forEach((seg, i) => {
+                    const size = 12 - (i * 1); // Schlange wird zum Ende hin dünner
+                    ctx.beginPath(); ctx.arc(seg.x, seg.y, Math.max(size, 4), 0, Math.PI*2); ctx.fill();
+                });
+            });
+
+            ctx.restore();
         }
 
         update();
