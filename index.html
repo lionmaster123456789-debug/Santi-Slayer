@@ -2,191 +2,261 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <title>Santi Slayer: God-Tier Edition</title>
+    <title>Santi Slayer - Hyper-Logic Edition (1000 Lines)</title>
     <style>
-        body { margin: 0; background: #050505; color: #fff; font-family: 'Segoe UI', Tahoma, sans-serif; overflow: hidden; user-select: none; }
-        canvas { display: block; background: #0a120a; cursor: crosshair; }
-        #ui { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
-        #hud { position: absolute; top: 20px; left: 20px; background: rgba(10, 10, 10, 0.95); padding: 25px; border-radius: 20px; border: 3px solid #f1c40f; min-width: 320px; box-shadow: 0 0 50px rgba(0,0,0,0.8); backdrop-filter: blur(10px); }
-        .bar { width: 100%; height: 16px; background: #222; border-radius: 8px; margin: 12px 0; border: 1px solid #444; overflow: hidden; position: relative; }
-        #xp-bar { height: 100%; background: linear-gradient(90deg, #3498db, #00f2fe); width: 0%; transition: width 0.4s cubic-bezier(0.17, 0.67, 0.83, 0.67); }
-        #hp-bar { height: 100%; background: linear-gradient(90deg, #e74c3c, #ff4d4d); width: 100%; transition: width 0.2s; }
-        #slots { display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap; }
-        .slot { width: 50px; height: 50px; border: 2px solid #f1c40f; background: #111; display: flex; align-items: center; justify-content: center; font-size: 26px; border-radius: 12px; position: relative; }
-        .slot .cd { position: absolute; bottom: 0; left: 0; width: 100%; background: rgba(255,255,255,0.2); height: 0%; }
-        .slot .lvl { position: absolute; top: -5px; right: -5px; background: #27ae60; font-size: 10px; padding: 2px 5px; border-radius: 6px; border: 1px solid #fff; }
-        .btn-back { position: absolute; top: 20px; right: 20px; padding: 15px 35px; background: #c0392b; color: white; text-decoration: none; border-radius: 12px; font-weight: bold; border: 3px solid #fff; pointer-events: all; transition: 0.3s; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        .btn-back:hover { background: #e74c3c; transform: scale(1.1) rotate(2deg); }
-        .overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.92); display: none; align-items: center; justify-content: center; z-index: 99999; pointer-events: all; backdrop-filter: blur(15px); }
-        #upgrade-box { background: #1c2833; padding: 50px; border-radius: 30px; border: 6px solid #f1c40f; text-align: center; width: 900px; box-shadow: 0 0 150px #000; }
-        .card-container { display: flex; gap: 25px; justify-content: center; margin-top: 40px; }
-        .card { background: #2c3e50; padding: 30px; border-radius: 20px; cursor: pointer; width: 250px; border: 3px solid transparent; transition: 0.3s; position: relative; }
-        .card:hover { border-color: #f1c40f; background: #1abc9c; transform: translateY(-20px); box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
-        .card i { font-size: 65px; display: block; margin-bottom: 15px; }
-        .card b { color: #f1c40f; font-size: 22px; display: block; margin-bottom: 10px; }
-        .card p { font-size: 14px; line-height: 1.5; color: #bdc3c7; }
+        body { margin: 0; background: #020202; color: #fff; font-family: 'Consolas', monospace; overflow: hidden; user-select: none; }
+        canvas { display: block; background: #0a0f0a; }
+        #ui-master { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
+        #hud-main { 
+            position: absolute; top: 25px; left: 25px; background: rgba(5, 15, 5, 0.95); 
+            padding: 25px; border-radius: 20px; border: 4px solid #f1c40f; min-width: 340px; 
+            box-shadow: 0 0 40px #000; backdrop-filter: blur(15px); z-index: 100;
+        }
+        .bar-wrap { width: 100%; height: 18px; background: #111; border-radius: 9px; margin: 12px 0; border: 1px solid #333; overflow: hidden; }
+        #xp-bar { height: 100%; background: linear-gradient(90deg, #00d2ff, #3a7bd5); width: 0%; transition: width 0.4s; }
+        #hp-bar { height: 100%; background: linear-gradient(90deg, #ff416c, #ff4b2b); width: 100%; transition: width 0.2s; }
+        #slot-grid { display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap; }
+        .u-slot { 
+            width: 55px; height: 55px; border: 2px solid #f1c40f; background: #000; 
+            display: flex; align-items: center; justify-content: center; font-size: 28px; 
+            border-radius: 12px; position: relative; 
+        }
+        .cd-mask { position: absolute; bottom: 0; left: 0; width: 100%; background: rgba(255,255,255,0.2); height: 0%; }
+        .lvl-tag { position: absolute; top: -5px; right: -5px; background: #27ae60; font-size: 11px; padding: 2px 6px; border-radius: 8px; border: 1px solid #fff; }
+        .back-link { 
+            position: absolute; top: 25px; right: 25px; padding: 18px 36px; background: #e74c3c; 
+            color: #fff; text-decoration: none; border-radius: 15px; font-weight: 900; 
+            border: 4px solid #fff; pointer-events: all; transition: 0.3s; box-shadow: 0 10px 30px #000;
+        }
+        .back-link:hover { transform: scale(1.1) rotate(1deg); background: #ff5e57; }
+        .full-overlay { 
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(0,0,0,0.95); display: none; align-items: center; 
+            justify-content: center; z-index: 1000; pointer-events: all; backdrop-filter: blur(20px);
+        }
+        #up-panel { 
+            background: #111; padding: 50px; border-radius: 35px; border: 8px solid #f1c40f; 
+            text-align: center; width: 950px; box-shadow: 0 0 200px #000; 
+        }
+        .card-row { display: flex; gap: 30px; justify-content: center; margin-top: 50px; }
+        .up-card { 
+            background: #1a1a1a; padding: 35px; border-radius: 25px; cursor: pointer; 
+            width: 260px; border: 4px solid transparent; transition: 0.4s;
+        }
+        .up-card:hover { border-color: #f1c40f; background: #222; transform: translateY(-25px); box-shadow: 0 30px 60px rgba(0,0,0,0.8); }
+        .up-card i { font-size: 80px; display: block; margin-bottom: 20px; }
+        .up-card b { color: #f1c40f; font-size: 24px; display: block; margin-bottom: 12px; }
+        .up-card p { font-size: 15px; line-height: 1.6; color: #aaa; }
     </style>
 </head>
 <body>
 
     <canvas id="gameCanvas"></canvas>
 
-    <div id="ui">
-        <div id="hud">
+    <div id="ui-master">
+        <div id="hud-main">
             <div style="display:flex; justify-content:space-between; align-items:flex-end;">
-                <b style="font-size: 32px; color: #f1c40f; letter-spacing: 2px;">SANTI SLAYER</b>
-                <span id="lvl-txt" style="font-weight:bold; background:#f1c40f; color:#000; padding:2px 10px; border-radius:5px;">LV 1</span>
+                <b style="font-size: 36px; color: #f1c40f; letter-spacing: 3px; text-shadow: 2px 2px #000;">SANTI SLAYER</b>
+                <span id="lvl-lbl" style="font-weight:900; background:#f1c40f; color:#000; padding:4px 14px; border-radius:8px; font-size: 20px;">LV 1</span>
             </div>
-            <div class="bar"><div id="xp-bar"></div></div>
-            <div class="bar" style="background:#300;"><div id="hp-bar"></div></div>
-            <div style="font-size: 15px; display:flex; justify-content:space-between; font-weight:bold;">
-                <span>HP: <span id="hp-txt">100 / 100</span></span>
+            <div class="bar-wrap"><div id="xp-bar"></div></div>
+            <div class="bar-wrap" style="background:#200;"><div id="hp-bar"></div></div>
+            <div style="font-size: 17px; display:flex; justify-content:space-between; font-weight:bold; color: #eee;">
+                <span>VITALITÄT: <span id="hp-txt">100 / 100</span></span>
                 <span>KILLS: <span id="score-txt">0</span></span>
             </div>
-            <div id="slots"></div>
+            <div id="slot-grid"></div>
         </div>
-        <a href="https://rhinogamescom.wordpress.com" class="btn-back">⬅ GET BACK</a>
+        <a href="https://rhinogamescom.wordpress.com" class="back-link">RHINO GAMES</a>
     </div>
 
-    <div id="upgrade-overlay" class="overlay">
-        <div id="upgrade-box">
-            <h1 style="color: #f1c40f; font-size: 48px; margin:0; text-shadow: 3px 3px #000;">STUFENAUFSTIEG</h1>
-            <p style="font-size: 20px;">Wähle eine neue Gabe zur Vernichtung der Schlangen:</p>
-            <div id="upgrade-cards" class="card-container"></div>
+    <div id="up-overlay" class="full-overlay">
+        <div id="up-panel">
+            <h1 style="color: #f1c40f; font-size: 60px; margin:0; text-shadow: 4px 4px #000;">STUFENAUFSTIEG</h1>
+            <p style="font-size: 24px; color: #eee;">Wähle eine arkane Gabe zur Vernichtung der Brut:</p>
+            <div id="up-container" class="card-row"></div>
         </div>
     </div>
 
     <script>
         /**
-         * SANTI SLAYER ENGINE v5.0 - OVER 1000 LINES OF LOGIC DENSITY
+         * SANTI SLAYER - 1000 LINES HYPER-LOGIC ENGINE
+         * ARCHITECTURE: MODULAR ENTITY & SKILL SYSTEM
          */
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
-        const WORLD_SIZE = 7000;
-        let cw, ch;
-
-        // Spiel-Registry
-        const game = { active: true, paused: false, tick: 0, startTime: Date.now(), tier: 0 };
-        const player = {
-            x: WORLD_SIZE/2, y: WORLD_SIZE/2, hp: 100, maxHp: 100, speed: 5.8,
-            xp: 0, nextXp: 100, lvl: 1, score: 0, size: 35, angle: 0,
-            slots: [], lastFire: 0, lastDash: 0, lastPoi: 0,
-            weaponAngle: 0, frame: 0, velX: 0, velY: 0
+        
+        // --- 1. CORE CONFIG & CONSTANTS ---
+        const cfg = {
+            worldSize: 8000,
+            camEase: 0.1,
+            spawnRate: 750,
+            gemValue: 35,
+            maxSlots: 8
         };
 
-        const camera = { x: WORLD_SIZE/2, y: WORLD_SIZE/2, lerp: 0.12 };
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        let cw, ch;
+
+        // --- 2. GAME STATE ---
+        const state = {
+            running: true,
+            tick: 0,
+            lastSpawn: 0,
+            entities: {
+                enemies: [],
+                projectiles: [],
+                gems: [],
+                deco: [],
+                fx: [],
+                poisons: [],
+                bunny: { x:0, y:0, a:0, active: false }
+            }
+        };
+
+        const player = {
+            x: cfg.worldSize/2,
+            y: cfg.worldSize/2,
+            hp: 100,
+            maxHp: 100,
+            speed: 6.0,
+            xp: 0,
+            nextXp: 100,
+            lvl: 1,
+            score: 0,
+            size: 38,
+            angle: 0,
+            lastFire: 0,
+            lastPoi: 0,
+            frame: 0,
+            skills: {},
+            slots: []
+        };
+
         const input = { w:0, a:0, s:0, d:0, ArrowUp:0, ArrowDown:0, ArrowLeft:0, ArrowRight:0 };
-        const entities = { enemies: [], projectiles: [], gems: [], deco: [], effects: [], poisons: [], bunny: { active: false, x: 0, y: 0, a: 0 } };
-        const mySkills = {};
+        const cam = { x: player.x, y: player.y };
 
-        // 20 Detaillierte Skills
+        // --- 3. SKILL & ENEMY DATABASE ---
         const SKILL_DB = [
-            {id:'fire', n:'Schnellschuss', i:'🏹', d:'Feuert automatische Pfeile in rasantem Tempo auf nahe Feinde.'},
-            {id:'bolt', n:'Kettenblitz', i:'⚡', d:'Blitze zucken zwischen Gegnern und verursachen massiven Schock.'},
-            {id:'bunny', n:'Kampfhase', i:'🐇', d:'Ein rammender Hase umkreist dich und zerschmettert Monster.'},
-            {id:'spd', n:'Laufschuhe', i:'👟', d:'Permanente Erhöhung deiner Laufgeschwindigkeit.'},
-            {id:'reg', n:'Segen', i:'🍎', d:'Heilt dich sofort und regeneriert HP kontinuierlich.'},
-            {id:'arm', n:'Rüstung', i:'🛡️', d:'Göttlicher Schutz, der erlittenen Schaden drastisch senkt.'},
-            {id:'aoe', n:'Sprengung', i:'💣', d:'Deine Projektile lösen beim Aufprall gewaltige Explosionen aus.'},
-            {id:'mag', n:'Magnetar', i:'🧲', d:'Zieht Edelsteine aus der gesamten Umgebung magisch an.'},
-            {id:'vamp', n:'Vampirismus', i:'🧛', d:'Geringe Chance, bei jedem Kill Lebenskraft zu entziehen.'},
-            {id:'ice', n:'Frosthauch', i:'❄️', d:'Verlangsamt alle Gegner in deiner Nähe durch eisige Kälte.'},
-            {id:'poi', n:'Pestnebel', i:'🧪', d:'Hinterlässt tödliche Giftwolken, die Schaden über Zeit anrichten.'},
-            {id:'crit', n:'Fokus', i:'🎯', d:'Erhöht die Chance auf kritische Treffer mit doppeltem Schaden.'},
-            {id:'ring', n:'Feuerring', i:'🔥', d:'Ein permanenter Ring aus Flammen verbrennt alles in Reichweite.'},
-            {id:'gold', n:'Gier', i:'💰', d:'Besiegte Feinde lassen wertvollere Edelsteine fallen.'},
-            {id:'size', n:'Titanenwuchs', i:'🐘', d:'Erhöht deine maximale Gesundheit und physische Kraft.'},
-            {id:'mult', n:'Multischuss', i:'✨', d:'Feuert zusätzliche Projektile in einem weiten Fächer ab.'},
-            {id:'dash', n:'Schattenschritt', i:'🌀', d:'Ermöglicht schnelle Ausweichmanöver bei Richtungswechsel.'},
-            {id:'shrd', n:'Splitter', i:'💎', d:'Feinde splittern beim Tod in tödliche Projektile auf.'},
-            {id:'wall', n:'Erdwall', i:'🧱', d:'Erzeugt Barrieren, die heranstürmende Gegner physisch stoppen.'},
-            {id:'luck', n:'Glückspilz', i:'🍀', d:'Erhöht die Chance auf seltene Upgrades und kritische Ereignisse.'}
+            {id:'fire', n:'Inferno-Schuss', i:'🏹', d:'Massiv erhöhte Feuerrate der Hauptwaffe.'},
+            {id:'bolt', n:'Gewitterfluch', i:'⚡', d:'Kettenblitze springen automatisch zwischen Feinden.'},
+            {id:'bunny', n:'Wächter-Hase', i:'🐇', d:'Ein rammender Begleiter zerschmettert nahe Brut.'},
+            {id:'spd', n:'Götterlauf', i:'👟', d:'Permanente Erhöhung der Bewegungsgeschwindigkeit.'},
+            {id:'reg', n:'Lebensquell', i:'🍎', d:'Sofortige Heilung und mächtige HP-Regeneration.'},
+            {id:'arm', n:'Obsidian-Panzer', i:'🛡️', d:'Verringert jeglichen erlittenen Schaden drastisch.'},
+            {id:'aoe', n:'Nova-Knall', i:'💣', d:'Projektile lösen gewaltige Flächenexplosionen aus.'},
+            {id:'mag', n:'Seelen-Magnet', i:'🧲', d:'Zieht Edelsteine aus dem gesamten Sichtbereich an.'},
+            {id:'vamp', n:'Blutdurst', i:'🧛', d:'Chance bei Kills verlorene Lebenskraft zu rauben.'},
+            {id:'ice', n:'Nullpunkt', i:'❄️', d:'Verlangsamt Gegner in deiner Nähe durch absolute Kälte.'},
+            {id:'poi', n:'Toxin-Spur', i:'🧪', d:'Hinterlässt giftige Wolken, die Leben zersetzen.'},
+            {id:'crit', n:'Präzision', i:'🎯', d:'Chance auf verheerende kritische Treffer (3x Schaden).'},
+            {id:'ring', n:'Höllenring', i:'🔥', d:'Ein Flammenwirbel röstet alles um dich herum.'},
+            {id:'gold', n:'Aura der Gier', i:'💰', d:'Gegner lassen weitaus mächtigere Edelsteine fallen.'},
+            {id:'size', n:'Koloss-Form', i:'🐘', d:'Erhöht maximale Vitalität und Angriffsreichweite.'},
+            {id:'mult', n:'Splitterschuss', i:'✨', d:'Feuert zusätzliche Projektile in alle Richtungen.'},
+            {id:'dash', n:'Äther-Dash', i:'🌀', d:'Schneller Sprung nach vorn bei Richtungswechsel.'},
+            {id:'shrd', n:'Knochensplitter', i:'💎', d:'Besiegte Feinde explodieren in scharfe Splitter.'},
+            {id:'wall', n:'Titanenwall', i:'🧱', d:'Erzeugt Barrikaden, die Monster physisch aufhalten.'},
+            {id:'luck', n:'Schicksals-Gunst', i:'🍀', d:'Erhöht die Qualität zukünftiger Upgrade-Wahlen.'}
         ];
 
-        // 15 Einzigartige Gegnertypen mit Modellen
-        const MOBS = [
-            {n:'Waldwurm', c:'#2ecc71', h:20, s:2.3, m:'snake', l:1},
-            {n:'Moosnatter', c:'#27ae60', h:45, s:2.6, m:'snake', l:2},
-            {n:'Steppenwolf', c:'#95a5a6', h:60, s:3.8, m:'beast', l:3},
-            {n:'Riesenwespe', c:'#f1c40f', h:30, s:5.2, m:'fly', l:4},
-            {n:'Höhlenbär', c:'#5d4037', h:220, s:1.6, m:'bear', l:5},
-            {n:'Skorpion', c:'#d35400', h:140, s:3.0, m:'insect', l:6},
-            {n:'Keiler', c:'#795548', h:90, s:4.2, m:'beast', l:7},
-            {n:'Steingolem', c:'#34495e', h:800, s:1.1, m:'golem', l:8},
-            {n:'Schattenläufer', c:'#111', h:200, s:6.0, m:'wraith', l:9},
-            {n:'Sumpfoger', c:'#1b5e20', h:500, s:1.9, m:'giant', l:10},
-            {n:'Höllendämon', c:'#c0392b', h:600, s:3.2, m:'demon', l:11},
-            {n:'Tentakel-Scheusal', c:'#8e44ad', h:400, s:2.7, m:'horror', l:12},
-            {n:'Frostspinne', c:'#d6eaf8', h:350, s:4.5, m:'insect', l:13},
-            {n:'Drakonid', c:'#16a085', h:1200, s:3.5, m:'beast', l:14},
-            {n:'DER SANTI-VOLLSTRECKER', c:'#fff', h:25000, s:2.5, m:'ultimate', l:15}
+        const MOB_MODELS = [
+            {n:'Schattenwurm', c:'#2ecc71', h:30, s:2.5, m:'snake'},
+            {n:'Moosnatter', c:'#27ae60', h:60, s:2.8, m:'snake'},
+            {n:'Stachelwolf', c:'#95a5a6', h:100, s:4.2, m:'beast'},
+            {n:'Pestwespe', c:'#f1c40f', h:40, s:6.0, m:'fly'},
+            {n:'Eisenbär', c:'#5d4037', h:350, s:1.8, m:'bear'},
+            {n:'Skorpion', c:'#d35400', h:200, s:3.4, m:'insect'},
+            {n:'Dämoneneber', c:'#795548', h:150, s:4.8, m:'beast'},
+            {n:'Basaltgolem', c:'#34495e', h:1200, s:1.2, m:'golem'},
+            {n:'Phantom', c:'#fff', h:250, s:5.0, t:0.5, m:'wraith'},
+            {n:'Sumpf-Ungetüm', c:'#1b5e20', h:800, s:2.2, m:'giant'},
+            {n:'Feuer-Fürst', c:'#c0392b', h:1000, s:3.8, m:'demon'},
+            {n:'Abgrund-Tentakel', c:'#8e44ad', h:600, s:2.8, m:'horror'},
+            {n:'Eis-Viper', c:'#d6eaf8', h:500, s:4.5, m:'snake'},
+            {n:'Drachen-Brut', c:'#16a085', h:2000, s:3.5, m:'dragon'},
+            {n:'DER SANTI-GOD', c:'#f1c40f', h:50000, s:2.5, m:'ultimate'}
         ];
 
+        // --- 4. ENGINE INITIALIZATION ---
         function init() {
             window.addEventListener('keydown', e => { if(input.hasOwnProperty(e.key)) input[e.key] = true; });
             window.addEventListener('keyup', e => { if(input.hasOwnProperty(e.key)) input[e.key] = false; });
             window.addEventListener('resize', resize);
             resize();
 
-            // Welt-Generierung (V2 Stil)
-            for(let i=0; i<250; i++) {
-                entities.deco.push({
-                    x: Math.random()*WORLD_SIZE, y: Math.random()*WORLD_SIZE,
+            // Dekoration & Map-Struktur
+            for(let i=0; i<300; i++) {
+                state.entities.deco.push({
+                    x: Math.random()*cfg.worldSize, y: Math.random()*cfg.worldSize,
                     t: Math.random()>0.5 ? 'tree' : 'rock',
-                    sz: 40 + Math.random()*60, rot: Math.random()*Math.PI*2
+                    sz: 50 + Math.random()*80, rot: Math.random()*Math.PI*2
                 });
             }
 
-            // Init Kamera auf Spieler
-            camera.x = player.x; camera.y = player.y;
+            // Kamera-Sync
+            cam.x = player.x - cw/2;
+            cam.y = player.y - ch/2;
+
             updateUI();
             requestAnimationFrame(mainLoop);
         }
 
-        function resize() { cw = canvas.width = window.innerWidth; ch = canvas.height = window.innerHeight; }
+        function resize() {
+            cw = canvas.width = window.innerWidth;
+            ch = canvas.height = window.innerHeight;
+        }
 
         function spawn() {
-            if(!game.active) return;
-            const elapsed = (Date.now() - game.startTime)/1000;
-            const idx = Math.min(14, Math.floor(elapsed / 25));
-            const data = MOBS[idx];
+            if(!state.running) return;
+            const timeElapsed = (Date.now() - player.startTime) / 1000;
+            const tier = Math.min(14, Math.floor(timeElapsed / 30));
+            const data = MOB_MODELS[tier];
             
-            const a = Math.random()*Math.PI*2;
-            const x = player.x + Math.cos(a)*1000;
-            const y = player.y + Math.sin(a)*1000;
+            const angle = Math.random() * Math.PI * 2;
+            const dist = 1200;
+            const spawnX = player.x + Math.cos(angle) * dist;
+            const spawnY = player.y + Math.sin(angle) * dist;
 
-            entities.enemies.push({
-                ...data, x, y, curHp: data.h + (player.lvl*10), maxHp: data.h + (player.lvl*10),
-                spd: data.s + (idx*0.12), sz: 25 + (idx*4),
-                segments: data.m === 'snake' ? Array(15).fill({x,y}) : [],
-                tick: Math.random()*100
+            state.entities.enemies.push({
+                ...data,
+                x: spawnX, y: spawnY,
+                curHp: data.h + (player.lvl * 25),
+                maxHp: data.h + (player.lvl * 25),
+                spd: data.s + (tier * 0.15),
+                sz: 30 + (tier * 5),
+                segments: data.m === 'snake' ? Array(18).fill({x: spawnX, y: spawnY}) : [],
+                tick: Math.random() * 100,
+                alpha: 1.0
             });
         }
-        setInterval(spawn, 800);
+        setInterval(spawn, cfg.spawnRate);
 
-        function triggerLevelUp() {
-            game.active = false;
-            const overlay = document.getElementById('upgrade-overlay');
-            const container = document.getElementById('upgrade-cards');
+        function levelUp() {
+            state.running = false;
+            const overlay = document.getElementById('up-overlay');
+            const container = document.getElementById('up-container');
             overlay.style.display = 'flex';
             container.innerHTML = '';
 
-            let deck = [...SKILL_DB].sort(() => 0.5 - Math.random()).slice(0, 3);
-            deck.forEach(s => {
-                const lv = mySkills[s.id] || 0;
+            const choices = [...SKILL_DB].sort(() => 0.5 - Math.random()).slice(0, 3);
+            choices.forEach(s => {
+                const lv = player.skills[s.id] || 0;
                 const card = document.createElement('div');
-                card.className = 'card';
+                card.className = 'up-card';
                 card.innerHTML = `<i>${s.i}</i><b>${s.n}</b><p>${s.d}</p><br><b style="color:#2ecc71">RANG ${lv+1}</b>`;
                 card.onclick = () => {
-                    if(!mySkills[s.id]) {
-                        if(player.slots.length < 8) player.slots.push(s);
-                        else { alert("Slots voll!"); return; }
+                    if(!player.skills[s.id]) {
+                        if(player.slots.length < cfg.maxSlots) player.slots.push(s);
+                        else { alert("Maximal 8 Skills erlaubt!"); return; }
                     }
-                    mySkills[s.id] = lv + 1;
-                    if(s.id==='reg') player.hp = Math.min(player.maxHp, player.hp+40);
-                    if(s.id==='size') { player.maxHp += 25; player.hp += 25; player.size += 4; }
+                    player.skills[s.id] = lv + 1;
+                    
+                    // Sofort-Effekte
+                    if(s.id === 'reg') player.hp = Math.min(player.maxHp, player.hp + 50);
+                    if(s.id === 'size') { player.maxHp += 40; player.hp += 40; player.size += 5; }
+                    
                     overlay.style.display = 'none';
-                    game.active = true;
+                    state.running = true;
                     updateUI();
                     window.focus();
                 };
@@ -199,93 +269,110 @@
             document.getElementById('hp-bar').style.width = (player.hp/player.maxHp*100)+'%';
             document.getElementById('hp-txt').innerText = `${Math.floor(player.hp)} / ${player.maxHp}`;
             document.getElementById('score-txt').innerText = player.score;
-            document.getElementById('lvl-txt').innerText = `LV ${player.lvl}`;
+            document.getElementById('lvl-lbl').innerText = `LV ${player.lvl}`;
             
-            const slots = document.getElementById('slots');
-            slots.innerHTML = '';
+            const grid = document.getElementById('slot-grid');
+            grid.innerHTML = '';
             player.slots.forEach(s => {
-                slots.innerHTML += `<div class="slot">${s.i}<div class="lvl">${mySkills[s.id]}</div></div>`;
+                grid.innerHTML += `<div class="u-slot">${s.i}<div class="lvl-tag">${player.skills[s.id]}</div></div>`;
             });
         }
 
-        // --- DRAWING MODELS ---
+        // --- 5. RENDER ENGINE (DETAIL-MODELS) ---
         function drawPlayer() {
             ctx.save();
             ctx.translate(player.x, player.y);
             
-            // Animierter Umhang (Physik-Simulation)
-            const wave = Math.sin(player.frame * 0.15) * 6;
-            ctx.fillStyle = '#7b241c'; // Dunkelrot
+            // Animierter Physik-Umhang (Hyper-Detail)
+            const wave = Math.sin(player.frame * 0.12) * 8;
+            ctx.fillStyle = '#8e1e1e';
             ctx.beginPath();
-            ctx.moveTo(-12, 0);
-            ctx.quadraticCurveTo(-35, 25 + wave, -55, 5 + wave);
-            ctx.quadraticCurveTo(-40, 0, -55, -5 - wave);
-            ctx.quadraticCurveTo(-35, -25 - wave, -12, 0);
+            ctx.moveTo(-15, 0);
+            ctx.quadraticCurveTo(-45, 30 + wave, -70, 10 + wave);
+            ctx.quadraticCurveTo(-50, 0, -70, -10 - wave);
+            ctx.quadraticCurveTo(-45, -30 - wave, -15, 0);
             ctx.fill();
+            ctx.strokeStyle = '#4a0c0c'; ctx.lineWidth = 2; ctx.stroke();
 
             ctx.rotate(player.angle);
 
-            // Charakter Körper
-            ctx.fillStyle = '#2471a3';
+            // Hauptkörper
+            const grad = ctx.createRadialGradient(0, 0, 5, 0, 0, player.size);
+            grad.addColorStop(0, '#3498db');
+            grad.addColorStop(1, '#2471a3');
+            ctx.fillStyle = grad;
             ctx.beginPath(); ctx.arc(0, 0, player.size, 0, 6.28); ctx.fill();
-            ctx.strokeStyle = '#1b4f72'; ctx.lineWidth = 4; ctx.stroke();
+            ctx.strokeStyle = '#1b4f72'; ctx.lineWidth = 5; ctx.stroke();
 
-            // Helm & Glühendes Visier
+            // Helm-Konstruktion
             ctx.fillStyle = '#5d6d7e';
             ctx.beginPath(); ctx.arc(0, 0, player.size*0.9, 3.14, 6.28); ctx.fill();
-            ctx.fillStyle = '#f1c40f'; // Leucht-Visier
-            ctx.shadowBlur = 15; ctx.shadowColor = '#f1c40f';
-            ctx.fillRect(-16, -6, 32, 6);
+            ctx.fillStyle = '#f1c40f'; // Glühendes Visier
+            ctx.shadowBlur = 20; ctx.shadowColor = '#f1c40f';
+            ctx.fillRect(-20, -7, 40, 7);
             ctx.shadowBlur = 0;
 
-            // Waffe (Animiert)
-            const weaponPos = Math.sin(player.frame*0.2)*8;
+            // Waffen-System
+            const wX = 35, wY = 25 + Math.sin(player.frame*0.18)*10;
             ctx.fillStyle = '#d4ac0d';
-            ctx.beginPath(); ctx.arc(28, 20 + weaponPos, 10, 0, 6.28); ctx.fill(); // Faust
+            ctx.beginPath(); ctx.arc(wX, wY, 12, 0, 6.28); ctx.fill(); // Faust
             ctx.fillStyle = '#85929e';
-            ctx.fillRect(28, 14 + weaponPos, 40, 12); // Klinge
+            ctx.fillRect(wX, wY - 8, 55, 16); // Legendäre Klinge
+            ctx.fillStyle = '#f1c40f'; ctx.fillRect(wX + 45, wY - 8, 10, 16); // Klingen-Spitze
 
             ctx.restore();
         }
 
         function drawEnemy(en) {
             ctx.save();
+            ctx.globalAlpha = en.alpha || 1;
             ctx.fillStyle = en.c;
             
             if(en.m === 'snake') {
                 en.segments.forEach((seg, i) => {
-                    const r = en.sz * (1 - i/20);
+                    const r = en.sz * (1 - i/22);
                     ctx.beginPath(); ctx.arc(seg.x, seg.y, r, 0, 6.28); ctx.fill();
                     if(i === 0) { // Kopf-Details
                         ctx.fillStyle = '#fff';
-                        ctx.beginPath(); ctx.arc(seg.x-6, seg.y-6, 5, 0, 6.28); ctx.fill();
-                        ctx.beginPath(); ctx.arc(seg.x+6, seg.y-6, 5, 0, 6.28); ctx.fill();
-                        ctx.fillStyle = en.c;
+                        ctx.beginPath(); ctx.arc(seg.x-8, seg.y-8, 6, 0, 6.28); ctx.fill();
+                        ctx.beginPath(); ctx.arc(seg.x+8, seg.y-8, 6, 0, 6.28); ctx.fill();
+                        ctx.fillStyle = '#000';
+                        ctx.beginPath(); ctx.arc(seg.x-8, seg.y-8, 3, 0, 6.28); ctx.fill();
+                        ctx.beginPath(); ctx.arc(seg.x+8, seg.y-8, 3, 0, 6.28); ctx.fill();
                     }
                 });
             } else {
-                // Detaillierte Beast/Ogre Modelle
+                // Komplexe Biest/Boss Modelle
+                ctx.shadowBlur = 15; ctx.shadowColor = en.c;
                 ctx.beginPath(); ctx.arc(en.x, en.y, en.sz, 0, 6.28); ctx.fill();
-                // Spezielle Merkmale für Dämonen/Bosse
+                ctx.shadowBlur = 0;
+                
+                // Merkmale (Hörner/Flügel)
                 if(en.m === 'demon' || en.m === 'ultimate') {
-                    ctx.beginPath(); ctx.moveTo(en.x-en.sz, en.y); ctx.lineTo(en.x-en.sz-20, en.y-30); ctx.lineTo(en.x, en.y-15); ctx.fill();
-                    ctx.beginPath(); ctx.moveTo(en.x+en.sz, en.y); ctx.lineTo(en.x+en.sz+20, en.y-30); ctx.lineTo(en.x, en.y-15); ctx.fill();
+                    ctx.fillStyle = '#000';
+                    ctx.beginPath(); ctx.moveTo(en.x-en.sz, en.y); ctx.lineTo(en.x-en.sz-30, en.y-50); ctx.lineTo(en.x, en.y-20); ctx.fill();
+                    ctx.beginPath(); ctx.moveTo(en.x+en.sz, en.y); ctx.lineTo(en.x+en.sz+30, en.y-50); ctx.lineTo(en.x, en.y-20); ctx.fill();
                 }
-                // Glühende Augen
-                ctx.fillStyle = '#f00';
-                ctx.beginPath(); ctx.arc(en.x-10, en.y-8, 6, 0, 6.28); ctx.fill();
-                ctx.beginPath(); ctx.arc(en.x+10, en.y-8, 6, 0, 6.28); ctx.fill();
+                
+                // Augen (Glühend)
+                ctx.fillStyle = '#ff0000';
+                ctx.shadowBlur = 10; ctx.shadowColor = 'red';
+                ctx.beginPath(); ctx.arc(en.x-14, en.y-10, 8, 0, 6.28); ctx.fill();
+                ctx.beginPath(); ctx.arc(en.x+14, en.y-10, 8, 0, 6.28); ctx.fill();
+                ctx.shadowBlur = 0;
             }
 
-            // HP Balken über Gegner
-            ctx.fillStyle = 'rgba(0,0,0,0.6)'; ctx.fillRect(en.x-35, en.y-en.sz-30, 70, 10);
-            ctx.fillStyle = '#e74c3c'; ctx.fillRect(en.x-35, en.y-en.sz-30, 70*(en.curHp/en.maxHp), 10);
+            // Statischer HP-Balken
+            ctx.fillStyle = 'rgba(0,0,0,0.8)';
+            ctx.fillRect(en.x - 40, en.y - en.sz - 35, 80, 12);
+            ctx.fillStyle = '#e74c3c';
+            ctx.fillRect(en.x - 40, en.y - en.sz - 35, 80 * (en.curHp / en.maxHp), 12);
             ctx.restore();
         }
 
-        // --- CORE ENGINE LOOP ---
+        // --- 6. CORE LOGIC UPDATES ---
         function mainLoop() {
-            if(game.active && !game.paused) {
+            if(state.running) {
                 update();
             }
             render();
@@ -293,9 +380,9 @@
         }
 
         function update() {
-            game.tick++;
+            state.tick++;
 
-            // Movement Logik
+            // 1. INPUT & PHYSICS
             let dx = 0, dy = 0;
             if(input.w || input.ArrowUp) dy = -1;
             if(input.s || input.ArrowDown) dy = 1;
@@ -304,149 +391,120 @@
 
             if(dx !== 0 || dy !== 0) {
                 const mag = Math.hypot(dx, dy);
-                const spd = player.speed + (mySkills.spd || 0) * 0.9;
+                const spd = player.speed + (player.skills.spd || 0) * 1.2;
                 player.x += (dx/mag) * spd;
                 player.y += (dy/mag) * spd;
                 player.angle = Math.atan2(dy, dx);
                 player.frame++;
+                
+                // Skill: Dash (🌀)
+                if(player.skills.dash && state.tick % 120 === 0) {
+                    player.x += (dx/mag) * 200;
+                    player.y += (dy/mag) * 200;
+                    state.entities.fx.push({t:'dash', x:player.x, y:player.y, l:20});
+                }
             }
 
             // Kamera-Glättung
-            camera.x += (player.x - cw/2 - camera.x) * camera.lerp;
-            camera.y += (player.y - ch/2 - camera.y) * camera.lerp;
+            cam.x += (player.x - cw/2 - cam.x) * cfg.camEase;
+            cam.y += (player.y - ch/2 - cam.y) * cfg.camEase;
 
-            // --- SKILLS LOGIC ---
+            // 2. SKILL LOGIC HANDLERS
             const now = Date.now();
 
-            // Automatisch Schießen (🏹)
-            const fireInterval = 750 / (mySkills.fire || 1);
-            if(now - player.lastFire > fireInterval) {
-                let target = null, minDist = 850;
-                entities.enemies.forEach(en => {
-                    const d = Math.hypot(en.x-player.x, en.y-player.y);
+            // Automatische Schuss-Logik (🏹)
+            const fireCD = 700 / (player.skills.fire || 1);
+            if(now - player.lastFire > fireCD) {
+                let target = null, minDist = 900;
+                state.entities.enemies.forEach(en => {
+                    const d = Math.hypot(en.x - player.x, en.y - player.y);
                     if(d < minDist) { minDist = d; target = en; }
                 });
 
                 if(target) {
-                    const a = Math.atan2(target.y-player.y, target.x-player.x);
-                    const count = mySkills.mult ? 1 + Math.floor(mySkills.mult/1.4) : 1;
+                    const a = Math.atan2(target.y - player.y, target.x - player.x);
+                    const count = player.skills.mult ? 1 + Math.floor(player.skills.mult/1.2) : 1;
                     for(let i=0; i<count; i++) {
-                        const spread = (i - (count-1)/2) * 0.25;
-                        entities.projectiles.push({
-                            x: player.x, y: player.y, 
-                            vx: Math.cos(a+spread)*18, vy: Math.sin(a+spread)*18, 
-                            l: 110, d: 15 + (mySkills.aoe?10:0)
+                        const spread = (i - (count-1)/2) * 0.3;
+                        state.entities.projectiles.push({
+                            x: player.x, y: player.y,
+                            vx: Math.cos(a + spread) * 22,
+                            vy: Math.sin(a + spread) * 22,
+                            l: 120, 
+                            dmg: 18 + (player.skills.aoe ? 15 : 0)
                         });
                     }
                     player.lastFire = now;
                 }
             }
 
-            // Kettenblitz (⚡)
-            if(mySkills.bolt && Math.random() < 0.02 * mySkills.bolt) {
-                let t = entities.enemies[Math.floor(Math.random()*entities.enemies.length)];
-                if(t && Math.hypot(t.x-player.x, t.y-player.y) < 700) {
-                    t.curHp -= 40 * mySkills.bolt;
-                    entities.effects.push({t:'bolt', x1:player.x, y1:player.y, x2:t.x, y2:t.y, l:12});
+            // Kettenblitz-Logik (⚡)
+            if(player.skills.bolt && state.tick % 45 === 0) {
+                let nearby = state.entities.enemies.filter(e => Math.hypot(e.x-player.x, e.y-player.y) < 700);
+                if(nearby.length > 0) {
+                    let t = nearby[Math.floor(Math.random()*nearby.length)];
+                    t.curHp -= 50 * player.skills.bolt;
+                    state.entities.fx.push({t:'bolt', x1:player.x, y1:player.y, x2:t.x, y2:t.y, l:15});
                 }
             }
 
             // Giftnebel (🧪)
-            if(mySkills.poi && now - player.lastPoi > 2000) {
-                entities.poisons.push({x: player.x, y: player.y, r: 100 + mySkills.poi*25, l: 300});
+            if(player.skills.poi && now - player.lastPoi > 2500) {
+                state.entities.poisons.push({x: player.x, y: player.y, r: 120 + player.skills.poi*30, l: 300});
                 player.lastPoi = now;
             }
 
-            // Entities Updates
+            // 3. ENTITY UPDATES
             updateEntities();
         }
 
         function updateEntities() {
-            // Projektile
-            entities.projectiles.forEach((p, i) => {
+            // Projektile & Kollision
+            state.entities.projectiles.forEach((p, i) => {
                 p.x += p.vx; p.y += p.vy; p.l--;
-                entities.enemies.forEach(en => {
-                    if(Math.hypot(p.x-en.x, p.y-en.y) < en.sz+15) {
-                        const crit = mySkills.crit && Math.random() < 0.2;
-                        en.curHp -= p.d * (crit?2.5:1);
+                state.entities.enemies.forEach(en => {
+                    if(Math.hypot(p.x - en.x, p.y - en.y) < en.sz + 20) {
+                        const crit = player.skills.crit && Math.random() < 0.25;
+                        en.curHp -= p.dmg * (crit ? 3.0 : 1.0);
                         p.l = 0;
-                        if(mySkills.aoe) entities.effects.push({t:'boom', x:en.x, y:en.y, r:60, l:10});
+                        if(player.skills.aoe) state.entities.fx.push({t:'boom', x:en.x, y:en.y, r:80, l:12});
                     }
                 });
-                if(p.l <= 0) entities.projectiles.splice(i, 1);
+                if(p.l <= 0) state.entities.projectiles.splice(i, 1);
             });
 
-            // Gegner
-            entities.enemies.forEach((en, i) => {
-                const a = Math.atan2(player.y-en.y, player.x-en.x);
-                const slow = (mySkills.ice && Math.hypot(en.x-player.x, en.y-player.y) < 450) ? 0.6 : 1;
-                en.x += Math.cos(a)*en.spd*slow;
-                en.y += Math.sin(a)*en.spd*slow;
+            // Gegner-KI
+            state.entities.enemies.forEach((en, i) => {
+                const a = Math.atan2(player.y - en.y, player.x - en.x);
+                const slow = (player.skills.ice && Math.hypot(en.x - player.x, en.y - player.y) < 500) ? 0.5 : 1;
+                en.x += Math.cos(a) * en.spd * slow;
+                en.y += Math.sin(a) * en.spd * slow;
                 
                 if(en.segments) {
-                    en.segments.unshift({x:en.x, y:en.y});
+                    en.segments.unshift({x: en.x, y: en.y});
                     en.segments.pop();
                 }
 
-                // Schaden am Spieler
-                if(Math.hypot(player.x-en.x, player.y-en.y) < player.size+en.sz) {
-                    player.hp -= (0.7 / (mySkills.arm || 1));
-                    if(player.hp <= 0) { alert("SANTI SLAYER GEFALLEN! Score: " + player.score); location.reload(); }
+                // Schaden am Spieler (Rüstung Skill 🛡️)
+                if(Math.hypot(player.x - en.x, player.y - en.y) < player.size + en.sz) {
+                    player.hp -= (0.8 / (player.skills.arm || 1));
                 }
 
-                // Schaden durch Gift
-                entities.poisons.forEach(p => {
-                    if(Math.hypot(en.x-p.x, en.y-p.y) < p.r) en.curHp -= 0.3;
+                // Giftschaden (🧪)
+                state.entities.poisons.forEach(p => {
+                    if(Math.hypot(en.x - p.x, en.y - p.y) < p.r) en.curHp -= 0.5;
                 });
 
                 if(en.curHp <= 0) {
-                    if(mySkills.vamp && Math.random() < 0.1) player.hp = Math.min(player.maxHp, player.hp+2);
-                    entities.gems.push({x:en.x, y:en.y, v:35 * (mySkills.gold?1.8:1)});
-                    entities.enemies.splice(i, 1); player.score++; updateUI();
-                }
-            });
-
-            // Gems & Magnetismus
-            entities.gems.forEach((g, i) => {
-                const d = Math.hypot(player.x-g.x, player.y-g.y);
-                const magnet = 180 + (mySkills.mag || 0)*90;
-                if(d < magnet) {
-                    g.x += (player.x-g.x)*0.25; g.y += (player.y-g.y)*0.25;
-                    if(d < 30) {
-                        entities.gems.splice(i,1); player.xp += g.v;
-                        if(player.xp >= player.nextXp) {
-                            player.lvl++; player.xp=0; player.nextXp *= 1.45; triggerLevelUp();
+                    // Vampire (🧛)
+                    if(player.skills.vamp && Math.random() < 0.12) player.hp = Math.min(player.maxHp, player.hp + 3);
+                    
+                    // Splitter (💎)
+                    if(player.skills.shrd) {
+                        for(let k=0; k<5; k++) {
+                            const ra = Math.random()*6.28;
+                            state.entities.projectiles.push({x:en.x, y:en.y, vx:Math.cos(ra)*10, vy:Math.sin(ra)*10, l:30, dmg:10});
                         }
-                        updateUI();
                     }
-                }
-            });
 
-            entities.effects.forEach((ef, i) => { ef.l--; if(ef.l<0) entities.effects.splice(i,1); });
-            entities.poisons.forEach((p, i) => { p.l--; if(p.l<0) entities.poisons.splice(i,1); });
-        }
-
-        function render() {
-            ctx.clearRect(0, 0, cw, ch);
-            ctx.save();
-            ctx.translate(-camera.x, -camera.y);
-
-            // Gitter & Weltgrenze
-            ctx.strokeStyle = 'rgba(255,255,255,0.06)'; ctx.lineWidth = 2;
-            for(let x=0; x<WORLD_SIZE; x+=300) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,WORLD_SIZE); ctx.stroke(); }
-            for(let y=0; y<WORLD_SIZE; y+=300) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(WORLD_SIZE,y); ctx.stroke(); }
-            ctx.strokeStyle = '#c0392b'; ctx.lineWidth = 20; ctx.strokeRect(0, 0, WORLD_SIZE, WORLD_SIZE);
-
-            // Umwelt
-            entities.deco.forEach(d => {
-                ctx.fillStyle = d.t==='tree'?'#0e3311':'#424949';
-                ctx.beginPath(); ctx.arc(d.x, d.y, d.sz, 0, 6.28); ctx.fill();
-            });
-
-            // Giftwolken
-            ctx.globalAlpha = 0.3; ctx.fillStyle = '#8e44ad';
-            entities.poisons.forEach(p => { ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, 6.28); ctx.fill(); });
-            ctx.globalAlpha = 1.0;
-
-            // Gems & Effects
-            ctx.fillStyle = '#3498db'; ctx.shadowBlur = 10; ctx.shadowColor = '#00f2fe';
+                    state.entities.gems.push({x: en.x, y: en.y, v: cfg.gemValue * (player.skills.gold ? 2 : 1
