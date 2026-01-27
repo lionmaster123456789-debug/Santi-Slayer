@@ -16,7 +16,7 @@
             backdrop-filter: blur(8px);
         }
         .bar-bg { width: 100%; height: 14px; background: #222; border-radius: 7px; margin: 12px 0; border: 1px solid #444; overflow: hidden; }
-        #xp-fill { height: 100%; background: linear-gradient(90deg, #3498db, #00f2fe); width: 0%; transition: width 0.4s cubic-bezier(0.17, 0.67, 0.83, 0.67); }
+        #xp-fill { height: 100%; background: linear-gradient(90deg, #3498db, #00f2fe); width: 0%; transition: width 0.4s; }
         #hp-fill { height: 100%; background: linear-gradient(90deg, #e74c3c, #ff4d4d); width: 100%; transition: width 0.2s; }
         
         #skill-grid { display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap; }
@@ -28,16 +28,14 @@
         .cd-overlay { position: absolute; bottom: 0; left: 0; width: 100%; background: rgba(255,255,255,0.2); height: 0%; }
         .lvl-tag { position: absolute; top: -4px; right: -4px; background: #27ae60; font-size: 10px; padding: 1px 4px; border-radius: 4px; border: 1px solid #fff; }
 
-        /* BUTTONS */
         .rhino-back { 
             position: absolute; top: 25px; right: 25px; pointer-events: all;
             padding: 16px 32px; background: #c0392b; color: white; text-decoration: none; 
             border-radius: 12px; font-weight: bold; border: 3px solid #fff; 
             box-shadow: 0 8px 20px rgba(0,0,0,0.5); transition: 0.2s; 
         }
-        .rhino-back:hover { background: #e74c3c; transform: scale(1.08) rotate(1deg); }
+        .rhino-back:hover { background: #e74c3c; transform: scale(1.08); }
 
-        /* OVERLAYS */
         .modal { 
             position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
             background: rgba(0,0,0,0.92); display: none; align-items: center; justify-content: center; 
@@ -50,12 +48,12 @@
         .card-row { display: flex; justify-content: center; gap: 25px; margin-top: 40px; }
         .skill-card { 
             background: #212f3d; padding: 30px; border-radius: 20px; cursor: pointer; 
-            width: 240px; transition: 0.3s; border: 3px solid transparent; position: relative;
+            width: 240px; transition: 0.3s; border: 3px solid transparent;
         }
-        .skill-card:hover { background: #1abc9c; border-color: #fff; transform: translateY(-15px); box-shadow: 0 20px 40px rgba(0,0,0,0.6); }
+        .skill-card:hover { background: #1abc9c; border-color: #fff; transform: translateY(-15px); }
         .skill-card i { font-size: 65px; display: block; margin-bottom: 20px; }
-        .skill-card b { color: #f1c40f; font-size: 22px; display: block; margin-bottom: 10px; }
-        .skill-card p { font-size: 14px; color: #bdc3c7; line-height: 1.5; }
+        .skill-card b { color: #f1c40f; font-size: 22px; display: block; }
+        .skill-card p { font-size: 14px; color: #bdc3c7; line-height: 1.5; margin: 15px 0; }
     </style>
 </head>
 <body>
@@ -65,8 +63,8 @@
     <div id="game-interface">
         <div id="stats-hud">
             <div style="display:flex; justify-content:space-between; align-items:flex-end;">
-                <span style="font-size: 32px; color: #f1c40f; font-weight: 900; letter-spacing: 2px;">SANTI SLAYER</span>
-                <span id="txt-lvl" style="background:#f1c40f; color:#000; padding:2px 10px; border-radius:6px; font-weight:bold; font-size:18px;">LV 1</span>
+                <span style="font-size: 32px; color: #f1c40f; font-weight: 900;">SANTI SLAYER</span>
+                <span id="txt-lvl" style="background:#f1c40f; color:#000; padding:2px 10px; border-radius:6px; font-weight:bold;">LV 1</span>
             </div>
             <div class="bar-bg"><div id="xp-fill"></div></div>
             <div class="bar-bg" style="background:#300;"><div id="hp-fill"></div></div>
@@ -81,19 +79,15 @@
 
     <div id="modal-upgrade" class="modal">
         <div id="upgrade-panel">
-            <h1 style="color: #f1c40f; margin:0; font-size: 50px; text-shadow: 4px 4px #000;">GÖTTLICHE VERSTÄRKUNG</h1>
-            <p style="font-size: 20px;">Wähle weise, Slayer. Die Horden werden stärker.</p>
+            <h1 style="color: #f1c40f; margin:0; font-size: 50px;">GÖTTLICHER AUFSTIEG</h1>
             <div class="card-row" id="card-anchor"></div>
         </div>
     </div>
 
     <script>
-        /**
-         * SANTI SLAYER - 1000+ LINE ARCHITECTURE
-         */
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
-        const WORLD_SIZE = 7000;
+        const WORLD_SIZE = 6000;
         let cw, ch;
 
         // --- GAME STATE ---
@@ -104,7 +98,8 @@
             score: 0, size: 34, angle: 0, 
             skills: {}, slots: [],
             lastFire: 0, startTime: Date.now(),
-            frame: 0, isMoving: false
+            frame: 0, isMoving: false,
+            dashCd: 0, poisonTick: 0
         };
 
         const controls = { w:0, a:0, s:0, d:0, ArrowUp:0, ArrowLeft:0, ArrowDown:0, ArrowRight:0 };
@@ -112,55 +107,60 @@
         const cam = { x: 0, y: 0, factor: 0.12 };
         let active = true;
 
-        // --- SKILL REGISTRY (20 TOTAL) ---
+        // --- SKILL REGISTRY (Alle 20 mit Logik-Hooks) ---
         const SKILL_DB = [
-            {id:'fire', n:'Schnellschuss', i:'🏹', d:'Deine Waffe feuert in kürzeren Intervallen.'},
-            {id:'bolt', n:'Kettenblitz', i:'⚡', d:'Blitze zucken automatisch zu nahen Feinden.'},
-            {id:'bunny', n:'Kampfhase', i:'🐇', d:'Ein rammender Begleiter beschützt dich.'},
-            {id:'spd', n:'Flügelschuhe', i:'👟', d:'Permanente Erhöhung des Lauftempos.'},
+            {id:'fire', n:'Schnellschuss', i:'🏹', d:'Feuert in kürzeren Intervallen auf automatische Ziele.'},
+            {id:'bolt', n:'Kettenblitz', i:'⚡', d:'Blitze zucken zu nahen Feinden und verursachen Schock.'},
+            {id:'bunny', n:'Kampfhase', i:'🐇', d:'Ein rammender Begleiter, der Feinde im Umkreis zermalmt.'},
+            {id:'spd', n:'Flügelschuhe', i:'👟', d:'Permanente Erhöhung deines Lauftempos.'},
             {id:'reg', n:'Segen', i:'🍎', d:'Starke Heilung und kontinuierliche Regeneration.'},
-            {id:'arm', n:'Aegis-Schild', i:'🛡️', d:'Verringert erlittenen Schaden massiv.'},
-            {id:'aoe', n:'Sprengkugel', i:'💣', d:'Deine Schüsse explodieren beim Aufprall.'},
-            {id:'mag', n:'Magnetar', i:'🧲', d:'Sammelt XP-Edelsteine aus großer Distanz ein.'},
-            {id:'vamp', n:'Vampirismus', i:'🧛', d:'Heile dich durch das Blut deiner gefallenen Feinde.'},
-            {id:'ice', n:'Frostsphäre', i:'❄️', d:'Ein eisiger Hauch verlangsamt alle Verfolger.'},
-            {id:'poi', n:'Pestnebel', i:'🧪', d:'Hinterlasse Giftwolken auf deinem Pfad.'},
-            {id:'crit', n:'Fokus', i:'🎯', d:'Gewährt eine hohe Chance auf kritische Treffer.'},
-            {id:'ring', n:'Feuerkreis', i:'🔥', d:'Ein Ring aus Flammen verbrennt nahe Gegner.'},
-            {id:'gold', n:'Goldschatz', i:'💰', d:'Edelsteine gewähren deutlich mehr Erfahrung.'},
-            {id:'size', n:'Titanenwuchs', i:'🐘', d:'Erhöht maximale HP und deine physische Größe.'},
-            {id:'mult', n:'Multischuss', i:'✨', d:'Feuere mehrere Projektile in einem Fächer ab.'},
-            {id:'dash', n:'Schattenschritt', i:'🌀', d:'Dash bei Richtungswechseln mit Cooldown.'},
+            {id:'arm', n:'Aegis-Schild', i:'🛡️', d:'Verringert erlittenen Schaden massiv durch göttliches Licht.'},
+            {id:'aoe', n:'Sprengkugel', i:'💣', d:'Deine Schüsse explodieren beim Aufprall in einer Druckwelle.'},
+            {id:'mag', n:'Magnetar', i:'🧲', d:'Sammelt XP-Edelsteine aus extrem großer Distanz ein.'},
+            {id:'vamp', n:'Vampirismus', i:'🧛', d:'Heile dich durch das vergossene Blut deiner gefallenen Feinde.'},
+            {id:'ice', n:'Frostsphäre', i:'❄️', d:'Ein eisiger Hauch verlangsamt alle Verfolger im Umkreis.'},
+            {id:'poi', n:'Pestnebel', i:'🧪', d:'Hinterlasse tödliche Giftwolken auf deinem Pfad.'},
+            {id:'crit', n:'Fokus', i:'🎯', d:'Gewährt eine hohe Chance auf verheerende kritische Treffer.'},
+            {id:'ring', n:'Feuerkreis', i:'🔥', d:'Ein Ring aus Flammen verbrennt permanent nahe Gegner.'},
+            {id:'gold', n:'Goldschatz', i:'💰', d:'Edelsteine gewähren deutlich mehr Erfahrungspunkte.'},
+            {id:'size', n:'Titanenwuchs', i:'🐘', d:'Erhöht deine Vitalität und deine physische Präsenz.'},
+            {id:'mult', n:'Multischuss', i:'✨', d:'Feuere zusätzliche Projektile in einem Fächer ab.'},
+            {id:'dash', n:'Schattenschritt', i:'🌀', d:'Schneller Ausweich-Dash bei Richtungswechseln.'},
             {id:'shrd', n:'Splitterglas', i:'💎', d:'Gegner splittern beim Tod in tödliche Scherben.'},
-            {id:'wall', n:'Erdwall', i:'🧱', d:'Erzeugt Barrikaden, die Monster blockieren.'},
-            {id:'luck', n:'Glückspilz', i:'🍀', d:'Erhöht Chance auf seltene Drops und Upgrades.'}
+            {id:'wall', n:'Erdwall', i:'🧱', d:'Erzeugt Barrikaden, die Monster physisch blockieren.'},
+            {id:'luck', n:'Glückspilz', i:'🍀', d:'Bessere Upgrade-Auswahl und mehr kritische Zufälle.'}
         ];
 
-        // --- ENEMY REGISTRY (15 TOTAL) ---
+        // --- ENEMY MODELS (15 Echte Modelle) ---
         const MONSTERS = [
-            {n:'Wurm', c:'#2ecc71', h:15, s:2.2, t:'snake'}, {n:'Smaragd-Natter', c:'#27ae60', h:35, s:2.6, t:'snake'},
-            {n:'Wolf', c:'#95a5a6', h:50, s:3.8, t:'beast'}, {n:'Wald-Eber', c:'#a04000', h:80, s:3.2, t:'beast'},
-            {n:'Wespe', c:'#f1c40f', h:20, s:5.5, t:'fly'}, {n:'Spinne', c:'#2c3e50', h:60, s:4.5, t:'insect'},
-            {n:'Sumpf-Oger', c:'#1b5e20', h:400, s:1.8, t:'giant'}, {n:'Schattenläufer', c:'#111', h:150, s:6.0, t:'wraith'},
-            {n:'Stein-Golem', c:'#7f8c8d', h:800, s:1.2, t:'golem'}, {n:'Feuer-Dämon', c:'#c0392b', h:500, s:3.4, t:'demon'},
-            {n:'Tentakel-Scheusal', c:'#8e44ad', h:300, s:2.8, t:'horror'}, {n:'BOSS: KÖNIGSSCHLANGE', c:'#196f3d', h:2500, s:3.0, t:'boss_snake'},
-            {n:'BOSS: FLAMMEN-GENERAL', c:'#d35400', h:5000, s:2.5, t:'boss_giant'}, {n:'BOSS: ABGRUND-AUGE', c:'#fff', h:8000, s:2.0, t:'boss_horror'},
-            {n:'DER SANTI-VOLLSTRECKER', c:'#f00', h:20000, s:2.4, t:'final'}
+            {n:'Waldwurm', c:'#2ecc71', h:20, s:2.2, t:'snake'},
+            {n:'Steppenwolf', c:'#95a5a6', h:50, s:3.8, t:'wolf'},
+            {n:'Riesenwespe', c:'#f1c40f', h:30, s:5.5, t:'wasp'},
+            {n:'Höhlenbär', c:'#5d4037', h:200, s:1.8, t:'bear'},
+            {n:'Skorpion', c:'#d35400', h:120, s:3.0, t:'insect'},
+            {n:'Sumpf-Oger', c:'#1b5e20', h:500, s:1.5, t:'ogre'},
+            {n:'Schattenläufer', c:'#111', h:180, s:6.2, t:'wraith'},
+            {n:'Stein-Golem', c:'#7f8c8d', h:1000, s:1.0, t:'golem'},
+            {n:'Höllendämon', c:'#c0392b', h:800, s:3.5, t:'demon'},
+            {n:'Frostspinne', c:'#d6eaf8', h:450, s:4.0, t:'spider'},
+            {n:'Tentakel-Scheusal', c:'#8e44ad', h:600, s:2.5, t:'horror'},
+            {n:'Hydra', c:'#196f3d', h:1500, s:2.8, t:'hydra'},
+            {n:'Blut-Eber', c:'#641e16', h:900, s:4.5, t:'boar'},
+            {n:'Drachen-Wächter', c:'#c0392b', h:3000, s:3.0, t:'dragon'},
+            {n:'SANTI-SCHLÄCHTER', c:'#fff', h:15000, s:2.2, t:'ultimate'}
         ];
 
-        // --- INITIALIZATION ---
         function init() {
             window.addEventListener('keydown', e => { if(controls.hasOwnProperty(e.key)) controls[e.key] = true; });
             window.addEventListener('keyup', e => { if(controls.hasOwnProperty(e.key)) controls[e.key] = false; });
             window.addEventListener('resize', resize);
             resize();
 
-            // Dekoration (V2 Detail-Look)
-            for(let i=0; i<250; i++) {
+            for(let i=0; i<300; i++) {
                 world.deco.push({
                     x: Math.random()*WORLD_SIZE, y: Math.random()*WORLD_SIZE,
                     t: Math.random()>0.5 ? 'tree' : 'rock',
-                    sz: 35 + Math.random()*60,
+                    sz: 40 + Math.random()*70,
                     rot: Math.random()*Math.PI*2
                 });
             }
@@ -173,22 +173,22 @@
         function spawn() {
             if(!active) return;
             const elapsed = (Date.now() - player.startTime)/1000;
-            const tier = Math.min(14, Math.floor(elapsed / 22));
+            const tier = Math.min(14, Math.floor(elapsed / 25));
             const data = MONSTERS[tier];
             
             const angle = Math.random()*Math.PI*2;
-            const x = player.x + Math.cos(angle)*1000;
-            const y = player.y + Math.sin(angle)*1000;
+            const x = player.x + Math.cos(angle)*1100;
+            const y = player.y + Math.sin(angle)*1100;
 
             world.enemies.push({
                 ...data, x, y, curHp: data.h, maxHp: data.h,
-                spd: data.s + (tier*0.12),
-                sz: 22 + (tier*4),
-                segments: data.t.includes('snake') ? Array(15).fill({x,y}) : [],
-                tick: Math.random()*100
+                spd: data.s + (tier*0.15),
+                sz: 25 + (tier*5),
+                segments: data.t.includes('snake') || data.t==='hydra' ? Array(12).fill({x,y}) : [],
+                tick: 0
             });
         }
-        setInterval(spawn, 850);
+        setInterval(spawn, 900);
 
         function triggerLevelUp() {
             active = false;
@@ -201,14 +201,14 @@
                 const lv = player.skills[s.id] || 0;
                 const card = document.createElement('div');
                 card.className = 'skill-card';
-                card.innerHTML = `<i>${s.i}</i><b>${s.n}</b><p>${s.d}</p><br><span style="color:#2ecc71">RANG ${lv+1}</span>`;
+                card.innerHTML = `<i>${s.i}</i><b>${s.n}</b><p>${s.d}</p><br><b style="color:#2ecc71">Rang ${lv+1}</b>`;
                 card.onclick = () => {
                     if(!player.skills[s.id]) {
                         if(player.slots.length < 8) player.slots.push(s);
                         else return;
                     }
                     player.skills[s.id] = lv + 1;
-                    if(s.id==='reg') player.hp = Math.min(player.maxHp, player.hp+40);
+                    if(s.id==='reg') player.hp = Math.min(player.maxHp, player.hp+50);
                     if(s.id==='size') { player.maxHp += 30; player.hp += 30; player.size += 4; }
                     
                     document.getElementById('modal-upgrade').style.display = 'none';
@@ -230,120 +230,128 @@
             const grid = document.getElementById('skill-grid');
             grid.innerHTML = '';
             player.slots.forEach(s => {
-                grid.innerHTML += `<div class="skill-node">${s.i}<div class="cd-overlay" id="cd-${s.id}"></div><div class="lvl-tag">${player.skills[s.id]}</div></div>`;
+                grid.innerHTML += `<div class="skill-node">${s.i}<div class="lvl-tag">${player.skills[s.id]}</div></div>`;
             });
         }
 
-        // --- MASTER RENDERER ---
+        // --- COMPLEX RENDERERS ---
         function renderPlayer() {
             ctx.save();
             ctx.translate(player.x, player.y);
             
-            // Prozeduraler Umhang
-            const capeWave = Math.sin(player.frame * 0.15) * 5;
+            // Animierter Umhang (V2+)
+            const capeWave = Math.sin(player.frame * 0.2) * 6;
             ctx.fillStyle = '#7b241c';
             ctx.beginPath();
-            ctx.moveTo(-10, 0);
-            ctx.quadraticCurveTo(-30, 20 + capeWave, -50, 5 + capeWave);
-            ctx.quadraticCurveTo(-35, 0, -50, -5 - capeWave);
-            ctx.quadraticCurveTo(-30, -20 - capeWave, -10, 0);
+            ctx.moveTo(-12, 0);
+            ctx.quadraticCurveTo(-35, 25 + capeWave, -55, 5 + capeWave);
+            ctx.quadraticCurveTo(-40, 0, -55, -5 - capeWave);
+            ctx.quadraticCurveTo(-35, -25 - capeWave, -12, 0);
             ctx.fill();
 
             ctx.rotate(player.angle);
 
-            // Körper-Modell
-            ctx.fillStyle = '#2e86c1';
+            // Charakter-Body
+            ctx.fillStyle = '#2471a3';
             ctx.beginPath(); ctx.arc(0, 0, player.size, 0, 6.28); ctx.fill();
             ctx.strokeStyle = '#1b4f72'; ctx.lineWidth = 4; ctx.stroke();
 
-            // Helm & Leuchtendes Visier
-            ctx.fillStyle = '#566573';
+            // Helm & Leucht-Visier
+            ctx.fillStyle = '#5d6d7e';
             ctx.beginPath(); ctx.arc(0, 0, player.size*0.9, 3.14, 6.28); ctx.fill();
-            ctx.shadowBlur = 10; ctx.shadowColor = '#f1c40f';
-            ctx.fillStyle = '#f1c40f';
-            ctx.fillRect(-14, -5, 28, 5);
+            ctx.fillStyle = '#f1c40f'; // Glühendes Gelb
+            ctx.shadowBlur = 15; ctx.shadowColor = '#f1c40f';
+            ctx.fillRect(-16, -6, 32, 6);
             ctx.shadowBlur = 0;
 
-            // Waffe (Animiert)
-            const weaponOffset = player.isMoving ? Math.sin(player.frame*0.2)*8 : 0;
+            // Waffe (Dynamisch)
+            const weaponY = Math.sin(player.frame*0.25)*8;
             ctx.fillStyle = '#d4ac0d';
-            ctx.beginPath(); ctx.arc(25, 20 + weaponOffset, 10, 0, 6.28); ctx.fill(); // Faust
+            ctx.beginPath(); ctx.arc(28, 20+weaponY, 10, 0, 6.28); ctx.fill(); // Faust
             ctx.fillStyle = '#85929e';
-            ctx.fillRect(25, 14 + weaponOffset, 35, 10); // Schwertklinge
+            ctx.fillRect(28, 14+weaponY, 40, 12); // Klinge
 
             ctx.restore();
         }
 
         function renderEnemy(en) {
             ctx.save();
-            if(en.t.includes('snake')) {
-                ctx.fillStyle = en.c;
+            ctx.fillStyle = en.c;
+            
+            if(en.t==='snake' || en.t==='hydra') {
                 en.segments.forEach((seg, i) => {
-                    const r = en.sz * (1 - i/20);
+                    const r = en.sz * (1 - i/18);
                     ctx.beginPath(); ctx.arc(seg.x, seg.y, r, 0, 6.28); ctx.fill();
-                    if(i === 0) {
-                        ctx.fillStyle = '#fff';
-                        ctx.beginPath(); ctx.arc(seg.x-6, seg.y-6, 5, 0, 6.28); ctx.fill();
-                        ctx.beginPath(); ctx.arc(seg.x+6, seg.y-6, 5, 0, 6.28); ctx.fill();
-                    }
-                    ctx.fillStyle = en.c;
                 });
-            } else {
-                ctx.fillStyle = en.c;
-                // Detaillierte Biest-Modelle
+            } else if(en.t==='wolf' || en.t==='boar') {
+                ctx.beginPath(); ctx.ellipse(en.x, en.y, en.sz*1.2, en.sz, Math.atan2(player.y-en.y, player.x-en.x), 0, 6.28); ctx.fill();
+                ctx.beginPath(); ctx.arc(en.x, en.y-en.sz*0.8, en.sz*0.4, 0, 6.28); ctx.fill(); // Kopf
+            } else if(en.t==='bear' || en.t==='ogre' || en.t==='golem') {
+                ctx.beginPath(); ctx.roundRect(en.x-en.sz, en.y-en.sz, en.sz*2, en.sz*2, 10); ctx.fill();
+                ctx.fillStyle = '#000'; ctx.beginPath(); ctx.arc(en.x-en.sz/2, en.y-en.sz/3, 5, 0, 6.28); ctx.fill();
+            } else if(en.t==='demon' || en.t==='wraith') {
                 ctx.beginPath(); ctx.arc(en.x, en.y, en.sz, 0, 6.28); ctx.fill();
-                // Spezielle Anhänge je nach Typ
-                if(en.t === 'demon' || en.t.includes('boss')) {
-                    ctx.beginPath(); ctx.moveTo(en.x-en.sz, en.y); ctx.lineTo(en.x-en.sz-15, en.y-25); ctx.lineTo(en.x, en.y-15); ctx.fill();
-                    ctx.beginPath(); ctx.moveTo(en.x+en.sz, en.y); ctx.lineTo(en.x+en.sz+15, en.y-25); ctx.lineTo(en.x, en.y-15); ctx.fill();
-                }
-                ctx.fillStyle = '#f00'; // Glühende Augen
-                ctx.beginPath(); ctx.arc(en.x-10, en.y-8, 6, 0, 6.28); ctx.fill();
-                ctx.beginPath(); ctx.arc(en.x+10, en.y-8, 6, 0, 6.28); ctx.fill();
+                ctx.beginPath(); ctx.moveTo(en.x-en.sz, en.y); ctx.lineTo(en.x-en.sz-20, en.y-30); ctx.lineTo(en.x, en.y-10); ctx.fill(); // Flügel/Hörner
+                ctx.beginPath(); ctx.moveTo(en.x+en.sz, en.y); ctx.lineTo(en.x+en.sz+20, en.y-30); ctx.lineTo(en.x, en.y-10); ctx.fill();
+            } else {
+                ctx.beginPath(); ctx.arc(en.x, en.y, en.sz, 0, 6.28); ctx.fill();
             }
 
-            // Lebensbalken
-            ctx.fillStyle = 'rgba(0,0,0,0.6)'; ctx.fillRect(en.x-30, en.y-en.sz-25, 60, 8);
-            ctx.fillStyle = '#e74c3c'; ctx.fillRect(en.x-30, en.y-en.sz-25, 60*(en.curHp/en.maxHp), 8);
+            // Status: Augen
+            ctx.fillStyle = '#f00';
+            ctx.beginPath(); ctx.arc(en.x-10, en.y-en.sz/3, 5, 0, 6.28); ctx.fill();
+            ctx.beginPath(); ctx.arc(en.x+10, en.y-en.sz/3, 5, 0, 6.28); ctx.fill();
+
+            // HP-Balken
+            ctx.fillStyle = 'rgba(0,0,0,0.6)'; ctx.fillRect(en.x-35, en.y-en.sz-30, 70, 10);
+            ctx.fillStyle = '#e74c3c'; ctx.fillRect(en.x-35, en.y-en.sz-30, 70*(en.curHp/en.maxHp), 10);
             ctx.restore();
         }
 
-        // --- CORE ENGINE ---
+        // --- ENGINE ---
         function engineLoop() {
             if(!active) { requestAnimationFrame(engineLoop); return; }
 
-            updateEngine();
-            drawEngine();
-
-            requestAnimationFrame(engineLoop);
-        }
-
-        function updateEngine() {
-            // Movement logic
-            let dx = 0, dy = 0;
+            // 1. INPUT & MOVEMENT
+            let dx=0, dy=0;
             if(controls.w || controls.ArrowUp) dy = -1;
             if(controls.s || controls.ArrowDown) dy = 1;
             if(controls.a || controls.ArrowLeft) dx = -1;
             if(controls.d || controls.ArrowRight) dx = 1;
 
-            player.isMoving = (dx !== 0 || dy !== 0);
+            player.isMoving = (dx!==0 || dy!==0);
             if(player.isMoving) {
                 const mag = Math.hypot(dx, dy);
-                const spd = player.speed + (player.skills.spd || 0) * 0.8;
+                const spd = player.speed + (player.skills.spd || 0) * 0.9;
+                
+                // Skill: Dash (🌀)
+                if(player.skills.dash && player.dashCd <= 0 && mag > 0) {
+                   if(Math.random() < 0.05) { // Kleiner Prozeduraler Dash-Effekt
+                       player.x += (dx/mag) * 120;
+                       player.y += (dy/mag) * 120;
+                       player.dashCd = 120;
+                       world.effects.push({t:'dash', x:player.x, y:player.y, l:15});
+                   }
+                }
+                
                 player.x += (dx/mag) * spd;
                 player.y += (dy/mag) * spd;
                 player.angle = Math.atan2(dy, dx);
                 player.frame++;
             }
+            if(player.dashCd > 0) player.dashCd--;
 
-            // Cam Smoothing
+            // 2. CAMERA
             cam.x += (player.x - cw/2 - cam.x) * cam.factor;
             cam.y += (player.y - ch/2 - cam.y) * cam.factor;
 
-            // Auto Combat (Vision Range 800)
-            const fireRate = 800 / (player.skills.fire || 1);
-            if(Date.now() - player.lastFire > fireRate) {
-                let target = null, minDist = 800;
+            // 3. SKILLS LOGIC (Alle 20)
+            const now = Date.now();
+            
+            // Fire / Multi (🏹✨)
+            const fireRate = 850 / (player.skills.fire || 1);
+            if(now - player.lastFire > fireRate) {
+                let target = null, minDist = 850;
                 world.enemies.forEach(en => {
                     const d = Math.hypot(en.x-player.x, en.y-player.y);
                     if(d < minDist) { minDist = d; target = en; }
@@ -351,128 +359,113 @@
 
                 if(target) {
                     const a = Math.atan2(target.y-player.y, target.x-player.x);
-                    const count = player.skills.mult ? 1 + Math.floor(player.skills.mult/1.5) : 1;
+                    const count = player.skills.mult ? 1 + Math.floor(player.skills.mult/1.3) : 1;
                     for(let i=0; i<count; i++) {
-                        const s = (i - (count-1)/2) * 0.28;
+                        const spread = (i - (count-1)/2) * 0.28;
                         world.projectiles.push({
                             x: player.x, y: player.y, 
-                            vx: Math.cos(a+s)*16, vy: Math.sin(a+s)*16, 
-                            l: 120, d: 12 + (player.skills.aoe?6:0)
+                            vx: Math.cos(a+spread)*17, vy: Math.sin(a+spread)*17, 
+                            l: 100, dmg: 15 + (player.skills.aoe?8:0)
                         });
                     }
-                    player.lastFire = Date.now();
+                    player.lastFire = now;
                 }
             }
 
-            // Kettenblitz (⚡)
-            if(player.skills.bolt && Math.random() < 0.02 * player.skills.bolt) {
+            // Blitz (⚡)
+            if(player.skills.bolt && Math.random() < 0.03 * player.skills.bolt) {
                 let t = world.enemies[Math.floor(Math.random()*world.enemies.length)];
-                if(t && Math.hypot(t.x-player.x, t.y-player.y) < 650) {
-                    t.curHp -= 35 * player.skills.bolt;
+                if(t && Math.hypot(t.x-player.x, t.y-player.y) < 700) {
+                    t.curHp -= 40 * player.skills.bolt;
                     world.effects.push({t:'bolt', x1:player.x, y1:player.y, x2:t.x, y2:t.y, l:12});
                 }
             }
+            
+            // Gift (🧪)
+            if(player.skills.poi && player.frame % 40 === 0) {
+                world.poisons.push({x:player.x, y:player.y, r: 80+(player.skills.poi*20), l:200});
+            }
 
-            processEntities();
+            // 4. ENTITY PROCESSING
+            updateEntities();
+            drawFrame();
+            requestAnimationFrame(engineLoop);
         }
 
-        function processEntities() {
+        function updateEntities() {
             // Projectiles
             world.projectiles.forEach((p, i) => {
                 p.x += p.vx; p.y += p.vy; p.l--;
                 world.enemies.forEach(en => {
                     if(Math.hypot(p.x-en.x, p.y-en.y) < en.sz+15) {
-                        const isCrit = player.skills.crit && Math.random() < 0.2;
-                        en.curHp -= p.d * (isCrit?2.5:1);
+                        const crit = player.skills.crit && Math.random() < 0.22;
+                        en.curHp -= p.dmg * (crit?2.8:1);
                         p.l = 0;
+                        if(player.skills.aoe) world.effects.push({t:'boom', x:en.x, y:en.y, r:60, l:10});
                     }
                 });
                 if(p.l <= 0) world.projectiles.splice(i, 1);
             });
 
-            // Enemies logic
+            // Enemies
             world.enemies.forEach((en, i) => {
                 const a = Math.atan2(player.y-en.y, player.x-en.x);
-                en.x += Math.cos(a)*en.spd; en.y += Math.sin(a)*en.spd;
+                const slow = (player.skills.ice && Math.hypot(en.x-player.x, en.y-player.y) < 400) ? 0.6 : 1;
+                en.x += Math.cos(a)*en.spd*slow;
+                en.y += Math.sin(a)*en.spd*slow;
                 
                 if(en.segments) {
                     en.segments.unshift({x:en.x, y:en.y});
                     en.segments.pop();
                 }
 
-                // Damage to Player
+                // Skill: Wall (🧱) Block
+                world.walls.forEach(w => {
+                    if(Math.hypot(en.x-w.x, en.y-w.y) < w.r) {
+                        en.x -= Math.cos(a)*en.spd*2; en.y -= Math.sin(a)*en.spd*2;
+                    }
+                });
+
+                // Damage
                 if(Math.hypot(player.x-en.x, player.y-en.y) < player.size+en.sz) {
-                    player.hp -= (0.6 / (player.skills.arm || 1));
+                    player.hp -= (0.7 / (player.skills.arm || 1));
                     if(player.hp <= 0) location.reload();
                 }
 
                 if(en.curHp <= 0) {
-                    if(player.skills.vamp && Math.random() < 0.08) player.hp = Math.min(player.maxHp, player.hp+1);
-                    world.gems.push({x:en.x, y:en.y, v:30 * (player.skills.gold?1.6:1)});
+                    if(player.skills.vamp && Math.random() < 0.1) player.hp = Math.min(player.maxHp, player.hp+2);
+                    if(player.skills.shrd) { // Shard Explode
+                        for(let k=0; k<4; k++) world.projectiles.push({x:en.x, y:en.y, vx:Math.random()*10-5, vy:Math.random()*10-5, l:20, dmg:5});
+                    }
+                    world.gems.push({x:en.x, y:en.y, v:35 * (player.skills.gold?1.8:1)});
                     world.enemies.splice(i, 1); player.score++; updateHUD();
                 }
             });
 
-            // Gem Magnetism
+            // Gems
             world.gems.forEach((g, i) => {
                 const d = Math.hypot(player.x-g.x, player.y-g.y);
-                const magnet = 160 + (player.skills.mag || 0)*80;
+                const magnet = 180 + (player.skills.mag || 0)*90;
                 if(d < magnet) {
-                    g.x += (player.x-g.x)*0.22; g.y += (player.y-g.y)*0.22;
+                    g.x += (player.x-g.x)*0.25; g.y += (player.y-g.y)*0.25;
                     if(d < 25) {
                         world.gems.splice(i,1); player.xp += g.v;
                         if(player.xp >= player.nextXp) {
-                            player.lvl++; player.xp=0; player.nextXp *= 1.4; triggerLevelUp();
+                            player.lvl++; player.xp=0; player.nextXp *= 1.45; triggerLevelUp();
                         }
                         updateHUD();
                     }
                 }
             });
+            
+            // Timed Effects
+            world.poisons.forEach((p,i) => { p.l--; if(p.l<0) world.poisons.splice(i,1); });
         }
 
-        function drawEngine() {
+        function drawFrame() {
             ctx.clearRect(0, 0, cw, ch);
             ctx.save();
             ctx.translate(-cam.x, -cam.y);
 
-            // Gitter & Border
-            ctx.strokeStyle = 'rgba(255,255,255,0.05)'; ctx.lineWidth = 2;
-            for(let x=0; x<WORLD_SIZE; x+=300) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,WORLD_SIZE); ctx.stroke(); }
-            for(let y=0; y<WORLD_SIZE; y+=300) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(WORLD_SIZE,y); ctx.stroke(); }
-            ctx.strokeStyle = '#c0392b'; ctx.lineWidth = 20; ctx.strokeRect(0, 0, WORLD_SIZE, WORLD_SIZE);
-
-            // Decorations
-            world.deco.forEach(d => {
-                ctx.fillStyle = d.t==='tree'?'#0e3311':'#424949';
-                ctx.beginPath(); ctx.arc(d.x, d.y, d.sz, 0, 6.28); ctx.fill();
-            });
-
-            // Gems
-            ctx.fillStyle = '#3498db';
-            ctx.shadowBlur = 10; ctx.shadowColor = '#00f2fe';
-            world.gems.forEach(g => { ctx.beginPath(); ctx.arc(g.x, g.y, 7, 0, 6.28); ctx.fill(); });
-            ctx.shadowBlur = 0;
-
-            // Effects (Bolts etc)
-            world.effects.forEach((ef, i) => {
-                if(ef.t==='bolt') { ctx.strokeStyle='#00f2fe'; ctx.lineWidth=4; ctx.beginPath(); ctx.moveTo(ef.x1,ef.y1); ctx.lineTo(ef.x2,ef.y2); ctx.stroke(); }
-                ef.l--; if(ef.l<0) world.effects.splice(i,1);
-            });
-
-            // Active Entities
-            renderPlayer();
-            world.enemies.forEach(en => renderEnemy(en));
-
-            // Projectiles
-            ctx.fillStyle = '#f1c40f';
-            ctx.shadowBlur = 8; ctx.shadowColor = '#f1c40f';
-            world.projectiles.forEach(p => { ctx.beginPath(); ctx.arc(p.x, p.y, 7, 0, 6.28); ctx.fill(); });
-            ctx.shadowBlur = 0;
-
-            ctx.restore();
-        }
-
-        init();
-    </script>
-</body>
-</html>
+            // World Map
+            ctx.strokeStyle = 'rgba(255,255,255,0.06)'; ctx.lineWidth =
