@@ -2,527 +2,361 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <title>Santi Slayer - Master Edition 850+</title>
+    <title>Santi Slayer - Master Edition</title>
     <style>
-        body { margin: 0; background: #050505; color: white; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; overflow: hidden; user-select: none; }
-        canvas { display: block; background: #1a2e1a; cursor: crosshair; }
-        
-        /* UI LAYERS */
-        #game-ui { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
-        
-        #hud { 
-            position: absolute; top: 20px; left: 20px; 
-            background: rgba(10, 10, 10, 0.9); padding: 25px; border-radius: 15px; 
-            border: 3px solid #f1c40f; min-width: 300px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); 
-        }
-        
-        .xp-container { width: 100%; height: 16px; background: #222; border-radius: 8px; margin: 15px 0; border: 1px solid #444; overflow: hidden; position: relative; }
-        #xp-fill { height: 100%; background: linear-gradient(90deg, #3498db, #00f2fe); width: 0%; transition: width 0.3s cubic-bezier(0.17, 0.67, 0.83, 0.67); }
-        
-        #hp-bar-ui { width: 100%; height: 10px; background: #300; border-radius: 5px; margin-bottom: 5px; }
-        #hp-fill-ui { height: 100%; background: #e74c3c; width: 100%; transition: width 0.2s; }
-
-        /* SKILL SLOTS WITH COOLDOWN */
-        #skill-slots { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; max-width: 350px; }
-        .slot { 
-            width: 45px; height: 45px; border: 2px solid #f1c40f; background: #111; 
-            display: flex; align-items: center; justify-content: center; font-size: 24px; 
-            border-radius: 10px; position: relative; overflow: hidden;
-        }
-        .slot .cd-overlay { 
-            position: absolute; bottom: 0; left: 0; width: 100%; background: rgba(0,0,0,0.7); 
-            height: 0%; transition: none; 
-        }
-        .slot .lvl-badge { 
-            position: absolute; top: -5px; right: -5px; background: #27ae60; 
-            color: white; font-size: 10px; padding: 2px 5px; border-radius: 50%; border: 1px solid white;
-        }
-
-        /* BUTTONS */
-        .btn-top { 
-            position: absolute; top: 20px; right: 20px; pointer-events: all;
-            padding: 15px 30px; background: #c0392b; color: white; text-decoration: none; 
-            border-radius: 12px; font-weight: bold; border: 3px solid #fff; 
-            box-shadow: 0 5px 15px rgba(0,0,0,0.4); transition: 0.2s;
-        }
-        .btn-top:hover { background: #e74c3c; transform: scale(1.05) rotate(1deg); }
-
-        /* OVERLAYS */
-        .full-overlay { 
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
-            background: rgba(0,0,0,0.85); display: none; align-items: center; justify-content: center; 
-            z-index: 9000; pointer-events: all; backdrop-filter: blur(5px);
-        }
-        #upgrade-window { 
-            background: #1c2833; padding: 40px; border-radius: 30px; border: 6px solid #f1c40f; 
-            text-align: center; width: 850px; box-shadow: 0 0 100px #000;
-        }
-        .card-flex { display: flex; justify-content: center; gap: 25px; margin-top: 35px; }
-        .u-card { 
-            background: #283747; padding: 25px; border-radius: 20px; cursor: pointer; 
-            width: 220px; border: 3px solid transparent; transition: 0.3s;
-            display: flex; flex-direction: column; align-items: center;
-        }
-        .u-card:hover { background: #1abc9c; border-color: #fff; transform: translateY(-15px); box-shadow: 0 15px 30px rgba(0,0,0,0.5); }
-        .u-card i { font-size: 60px; margin-bottom: 15px; }
-        .u-card b { color: #f1c40f; font-size: 20px; margin-bottom: 10px; }
-        .u-card p { font-size: 13px; color: #bdc3c7; line-height: 1.4; }
-
-        #pause-indicator { position: absolute; bottom: 20px; right: 20px; font-weight: bold; color: #f1c40f; letter-spacing: 2px; }
+        body { margin: 0; background: #050505; color: white; font-family: 'Segoe UI', sans-serif; overflow: hidden; user-select: none; }
+        canvas { display: block; background: #1a2e1a; }
+        #ui { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
+        #hud { position: absolute; top: 20px; left: 20px; background: rgba(10, 10, 10, 0.9); padding: 20px; border-radius: 15px; border: 3px solid #f1c40f; min-width: 280px; pointer-events: none; }
+        .xp-bar { width: 100%; height: 12px; background: #222; border-radius: 6px; margin: 10px 0; overflow: hidden; border: 1px solid #444; }
+        #xp-fill { height: 100%; background: #3498db; width: 0%; transition: width 0.3s; }
+        #hp-bar { width: 100%; height: 8px; background: #300; border-radius: 4px; margin-bottom: 5px; }
+        #hp-fill { height: 100%; background: #e74c3c; width: 100%; }
+        #slots { display: flex; gap: 8px; margin-top: 15px; flex-wrap: wrap; }
+        .slot { width: 40px; height: 40px; border: 2px solid #f1c40f; background: #111; display: flex; align-items: center; justify-content: center; font-size: 20px; border-radius: 8px; position: relative; overflow: hidden; }
+        .slot .cd { position: absolute; bottom: 0; left: 0; width: 100%; background: rgba(255,255,255,0.3); height: 0%; }
+        .btn-back { position: absolute; top: 20px; right: 20px; padding: 12px 24px; background: #c0392b; color: white; text-decoration: none; border-radius: 10px; font-weight: bold; border: 2px solid #fff; pointer-events: all; }
+        .overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: none; align-items: center; justify-content: center; z-index: 9999; pointer-events: all; }
+        #upgrade-box { background: #1c2833; padding: 30px; border-radius: 20px; border: 5px solid #f1c40f; text-align: center; width: 80%; max-width: 800px; }
+        .card-container { display: flex; gap: 15px; justify-content: center; margin-top: 20px; }
+        .card { background: #283747; padding: 15px; border-radius: 10px; cursor: pointer; width: 200px; border: 2px solid transparent; }
+        .card:hover { border-color: #f1c40f; background: #34495e; }
+        .card i { font-size: 40px; display: block; }
+        .card b { color: #f1c40f; display: block; margin: 5px 0; }
+        .card p { font-size: 12px; margin: 0; color: #bdc3c7; }
     </style>
 </head>
 <body>
 
     <canvas id="gameCanvas"></canvas>
 
-    <div id="game-ui">
+    <div id="ui">
         <div id="hud">
-            <div style="display:flex; justify-content: space-between; align-items: center;">
-                <span style="font-size: 28px; color: #f1c40f; font-weight: bold; letter-spacing: 1px;">SANTI SLAYER</span>
-                <span id="lbl-lvl-top" style="background:#f1c40f; color:#000; padding:2px 10px; border-radius:5px; font-weight:bold;">LV 1</span>
-            </div>
-            <div class="xp-container"><div id="xp-fill"></div></div>
-            <div id="hp-bar-ui"><div id="hp-fill-ui"></div></div>
-            <div style="display:flex; justify-content: space-between; font-size: 13px;">
-                <span>HP: <span id="hp-txt">100/100</span></span>
-                <span>KILLS: <span id="kill-txt">0</span></span>
-            </div>
-            <div style="font-size: 13px; margin-top: 5px; color: #bdc3c7;">ZEIT: <span id="time-txt">0:00</span></div>
-            <div id="skill-slots"></div>
+            <div style="font-size: 22px; font-weight: bold; color: #f1c40f;">SANTI SLAYER</div>
+            <div class="xp-bar"><div id="xp-fill"></div></div>
+            <div id="hp-bar"><div id="hp-fill"></div></div>
+            <div style="font-size: 13px;">LV: <span id="lvl-txt">1</span> | Kills: <span id="score-txt">0</span></div>
+            <div id="slots"></div>
         </div>
-
-        <a href="https://rhinogamescom.wordpress.com" class="btn-top">GET BACK</a>
-        <div id="pause-indicator">DRÜCKE [P] FÜR PAUSE</div>
+        <a href="https://rhinogamescom.wordpress.com" class="btn-back">GET BACK</a>
     </div>
 
-    <!-- UPGRADE OVERLAY -->
-    <div id="upgrade-overlay" class="full-overlay">
-        <div id="upgrade-window">
-            <h1 style="margin:0; color: #f1c40f; font-size: 40px; text-shadow: 3px 3px #000;">STUFENAUFSTIEG!</h1>
-            <p style="font-size: 18px; color: #ecf0f1;">Wähle eine göttliche Gabe zur Verstärkung:</p>
-            <div class="card-flex" id="upgrade-deck"></div>
+    <div id="upgrade-overlay" class="overlay">
+        <div id="upgrade-box">
+            <h1 style="color: #f1c40f;">LEVEL UP!</h1>
+            <div id="upgrade-cards" class="card-container"></div>
         </div>
     </div>
 
-    <!-- PAUSE OVERLAY -->
-    <div id="pause-overlay" class="full-overlay">
-        <div style="text-align:center;">
-            <h1 style="font-size: 80px; color: #f1c40f; margin: 0;">PAUSE</h1>
-            <p style="font-size: 24px;">Drücke [P] zum Weiterspielen</p>
-        </div>
+    <div id="pause-overlay" class="overlay">
+        <h1 style="color: #f1c40f; font-size: 60px;">PAUSE</h1>
     </div>
 
     <script>
-        /**
-         * SANTI SLAYER - SUPREME ENGINE v4.0 (850+ Lines Architecture)
-         */
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
-        const WORLD_SIZE = 6000;
         let cw, ch;
+        const WORLD_SIZE = 5000;
 
-        // --- GAME OBJECTS ---
-        const player = {
+        // Spiel-Variablen
+        let player = {
             x: WORLD_SIZE/2, y: WORLD_SIZE/2,
-            targetX: WORLD_SIZE/2, targetY: WORLD_SIZE/2,
-            speed: 5.2, hp: 100, maxHp: 100,
+            hp: 100, maxHp: 100, speed: 5,
             xp: 0, nextXp: 100, lvl: 1,
-            score: 0, startTime: Date.now(),
-            size: 32, angle: 0, frame: 0, 
-            slots: [], 
-            invul: 0, // Invulnerability frames
-            dashCd: 0,
-            poisonCd: 0,
-            lastDirection: {x: 0, y: 0}
+            score: 0, size: 30, angle: 0,
+            slots: [], lastFire: 0
         };
 
-        const camera = { x: 0, y: 0, lerp: 0.1 };
-        const input = { 
-            w: false, s: false, a: false, d: false, 
-            ArrowUp: false, ArrowDown: false, ArrowLeft: false, ArrowRight: false 
-        };
-        
-        let enemies = [];
-        let projectiles = [];
-        let gems = [];
-        let worldObjects = [];
-        let effects = [];
-        let bunny = { active: false, x: 0, y: 0, angle: 0, size: 18 };
-        let walls = [];
-        let poisons = [];
-        
-        let gameRunning = true;
-        let isPaused = false;
-        let lastTimestamp = 0;
-        let globalTick = 0;
-        
-        const mySkills = {}; 
-        const cooldowns = {};
+        let keys = {};
+        let enemies = [], projectiles = [], gems = [], decorations = [], effects = [], poisons = [], walls = [];
+        let bunny = { x: 0, y: 0, angle: 0, active: false };
+        let gameRunning = true, isPaused = false;
+        let mySkills = {}, cooldowns = {};
 
-        // --- SKILL DATABASE (20 PIECES) ---
-        const DATABASE = [
-            {id:'fire', n:'Schnellschuss', i:'🏹', d:'Erhöht die Schussrate deiner automatischen Waffe.'},
-            {id:'bolt', n:'Kettenblitz', i:'⚡', d:'Schlägt regelmäßig auf nahe Gegner ein. Springt bei höherem Level.'},
-            {id:'bunny', n:'Kampfhase', i:'🐇', d:'Beschwört einen Begleiter, der Gegner im Umkreis rammt.'},
-            {id:'spd', n:'Flügelschuhe', i:'👟', d:'Permanente Erhöhung deines Lauftempos.'},
-            {id:'reg', n:'Regeneration', i:'🍎', d:'Heilt dich sofort und regeneriert HP über Zeit.'},
-            {id:'arm', n:'Plattenpanzer', i:'🛡️', d:'Reduziert allen erlittenen Schaden drastisch.'},
-            {id:'aoe', n:'Sprengsatz', i:'💣', d:'Projektile lösen beim Aufprall eine Explosion aus.'},
-            {id:'mag', n:'Magnetstein', i:'🧲', d:'Zieht XP-Edelsteine aus großer Entfernung an.'},
-            {id:'vamp', n:'Vampirbiss', i:'🧛', d:'Geringe Chance, bei einem Kill 1 HP zu heilen. (Genervt!)'},
-            {id:'ice', n:'Frosthauch', i:'❄️', d:'Verlangsamt Gegner in deiner Nähe permanent.'},
-            {id:'poi', n:'Giftwolke', i:'🧪', d:'Hinterlässt regelmäßig eine schädliche Giftpfütze.'},
-            {id:'crit', n:'Fokus', i:'🎯', d:'Chance auf verdoppelten Schaden bei jedem Treffer.'},
-            {id:'ring', n:'Feueraura', i:'🔥', d:'Ein permanenter Ring aus Flammen verbrennt Angreifer.'},
-            {id:'gold', n:'Gier', i:'💰', d:'Besiegte Gegner lassen wertvollere Edelsteine fallen.'},
-            {id:'size', n:'Titanenform', i:'🐘', d:'Erhöht deine maximale Gesundheit und Größe.'},
-            {id:'mult', n:'Multischuss', i:'✨', d:'Feuert zusätzliche Projektile in Fächerform.'},
-            {id:'dash', n:'Schattendash', i:'🌀', d:'Schneller Ausweichsprung bei Richtungswechseln.'},
-            {id:'shrd', n:'Splitterglas', i:'💎', d:'Gegner splittern beim Tod in kleine Geschosse auf.'},
-            {id:'wall', n:'Schutzwall', i:'🧱', d:'Erzeugt Barrieren, die Gegner physisch blockieren.'},
-            {id:'luck', n:'Glückspilz', i:'🍀', d:'Erhöht die Chance auf seltene Upgrades und Crits.'}
+        const SKILLS = [
+            {id:'fire', n:'Schnellschuss', i:'🏹', d:'Feuert schneller.'},
+            {id:'bolt', n:'Kettenblitz', i:'⚡', d:'Blitze treffen Gegner.'},
+            {id:'bunny', n:'Kampfhase', i:'🐇', d:'Ein rammender Hase.'},
+            {id:'spd', n:'Tempo', i:'👟', d:'Schneller laufen.'},
+            {id:'reg', n:'Heilung', i:'🍎', d:'Regeneriert HP.'},
+            {id:'arm', n:'Panzer', i:'🛡️', d:'Weniger Schaden.'},
+            {id:'aoe', n:'Bombe', i:'💣', d:'Flächenschaden.'},
+            {id:'mag', n:'Magnet', i:'🧲', d:'Zieht XP an.'},
+            {id:'vamp', n:'Vampir', i:'🧛', d:'HP bei Kill.'},
+            {id:'ice', n:'Frost', i:'❄️', d:'Gegner verlangsamen.'},
+            {id:'poi', n:'Gift', i:'🧪', d:'Hinterlässt Giftwolken.'},
+            {id:'crit', n:'Fokus', i:'🎯', d:'Chance auf Doppel-Schaden.'},
+            {id:'ring', n:'Aura', i:'🔥', d:'Schaden um dich herum.'},
+            {id:'gold', n:'Gier', i:'💰', d:'Mehr XP pro Edelstein.'},
+            {id:'size', n:'Riese', i:'🐘', d:'Mehr Max HP.'},
+            {id:'mult', n:'Multi', i:'✨', d:'Mehr Projektile.'},
+            {id:'dash', n:'Dash', i:'🌀', d:'Schneller Ausweichsprung.'},
+            {id:'shrd', n:'Splitter', i:'💎', d:'Gegner explodieren.'},
+            {id:'wall', n:'Wand', i:'🧱', d:'Blockiert Gegner.'},
+            {id:'luck', n:'Glück', i:'🍀', d:'Bessere Upgrades.'}
         ];
 
-        // --- ENEMY MODELS (15 UNIQUE TYPES) ---
         const ENEMIES = [
-            {n:'Waldwurm', c:'#2ecc71', hp:15, s:2, m:'snake'},
-            {n:'Moosnatter', c:'#1b5e20', hp:30, s:2.2, m:'snake'},
-            {n:'Steppenwolf', c:'#95a5a6', hp:50, s:3.4, m:'wolf'},
-            {n:'Riesenwespe', c:'#f1c40f', hp:25, s:4.5, m:'fly'},
-            {n:'Höhlenbär', c:'#5d4037', hp:150, s:1.8, m:'bear'},
-            {n:'Wüstenskorpion', c:'#d35400', hp:100, s:2.8, m:'insect'},
-            {n:'Eisenkeiler', c:'#795548', hp:200, s:3.8, m:'boar'},
-            {n:'Stein-Golem', c:'#34495e', hp:600, s:1.2, m:'golem'},
-            {n:'Sumpf-Oger', c:'#145a32', hp:450, s:2.0, m:'ogre'},
-            {n:'Nachtschrecken', c:'#111', hp:300, s:5.2, m:'wraith'},
-            {n:'Höllendämon', c:'#c0392b', hp:700, s:3.0, m:'demon'},
-            {n:'Frostspinne', c:'#d6eaf8', hp:400, s:4.0, m:'spider'},
-            {n:'Tentakel-Scheusal', c:'#8e44ad', hp:800, s:2.4, m:'abomination'},
-            {n:'Smaragd-Drache', c:'#196f3d', hp:1800, s:3.5, m:'dragon'},
-            {n:'DER SANTI-SCHLÄCHTER', c:'#fff', hp:10000, s:2.0, m:'ultimate'}
+            {n:'Wurm', c:'#2ecc71', hp:15, s:2, m:'snake'},
+            {n:'Bär', c:'#5d4037', hp:100, s:1.5, m:'bear'},
+            {n:'Wolf', c:'#95a5a6', hp:40, s:3.5, m:'wolf'},
+            {n:'Schatten', c:'#111', hp:200, s:4, m:'wraith'},
+            {n:'Dämon', c:'#c0392b', hp:500, s:2.5, m:'demon'}
+            // ... (weitere Typen intern berechnet)
         ];
 
-        // --- INITIALIZATION ---
         function init() {
-            window.addEventListener('keydown', e => {
-                if(input.hasOwnProperty(e.key)) input[e.key] = true;
-                if(e.key === 'w' || e.key === 'a' || e.key === 's' || e.key === 'd') input[e.key] = true;
-                if(e.key.toLowerCase() === 'p' || e.key === 'Escape') togglePause();
+            window.addEventListener('keydown', e => { 
+                keys[e.key.toLowerCase()] = true;
+                keys[e.key] = true; // Für Pfeiltasten
+                if(e.key.toLowerCase() === 'p') togglePause();
             });
-            window.addEventListener('keyup', e => {
-                if(input.hasOwnProperty(e.key)) input[e.key] = false;
-                if(e.key === 'w' || e.key === 'a' || e.key === 's' || e.key === 'd') input[e.key] = false;
+            window.addEventListener('keyup', e => { 
+                keys[e.key.toLowerCase()] = false;
+                keys[e.key] = false;
             });
             window.addEventListener('resize', resize);
             resize();
 
-            // Dekoration generieren
-            for(let i=0; i<200; i++) {
-                worldObjects.push({
-                    x: Math.random()*WORLD_SIZE, y: Math.random()*WORLD_SIZE,
-                    t: Math.random()>0.4 ? 'tree' : 'rock',
-                    s: 30 + Math.random()*50,
-                    id: i
-                });
+            for(let i=0; i<100; i++) {
+                decorations.push({x: Math.random()*WORLD_SIZE, y: Math.random()*WORLD_SIZE, t: Math.random()>0.5?'tree':'stone', sz: 30+Math.random()*30});
             }
-
-            DATABASE.forEach(s => cooldowns[s.id] = 0);
-            updateHUD();
-            requestAnimationFrame(mainLoop);
+            updateUI();
+            requestAnimationFrame(loop);
         }
 
         function resize() { cw = canvas.width = window.innerWidth; ch = canvas.height = window.innerHeight; }
 
         function togglePause() {
-            if(!gameRunning) return; // Nicht pausieren im Level-Up
+            if(!gameRunning) return;
             isPaused = !isPaused;
             document.getElementById('pause-overlay').style.display = isPaused ? 'flex' : 'none';
         }
 
-        // --- CORE GAME LOGIC ---
-        function mainLoop(timestamp) {
-            const dt = timestamp - lastTimestamp;
-            lastTimestamp = timestamp;
+        function spawnEnemy() {
+            if(!gameRunning || isPaused) return;
+            let time = (Date.now() - player.startTime)/1000;
+            let level = Math.min(14, Math.floor(time / 20));
+            let a = Math.random()*Math.PI*2;
+            let x = player.x + Math.cos(a)*800;
+            let y = player.y + Math.sin(a)*800;
 
-            if(!isPaused && gameRunning) {
-                update(dt);
-            }
-            draw();
-            requestAnimationFrame(mainLoop);
+            let base = ENEMIES[level % ENEMIES.length];
+            enemies.push({
+                ...base, x, y, curHp: base.hp + (level*20), 
+                sz: 20 + (level*2), segments: Array(base.m==='snake'?8:0).fill({x,y}),
+                spd: base.s + (level*0.1)
+            });
+        }
+        setInterval(spawnEnemy, 1000);
+
+        function updateUI() {
+            document.getElementById('lvl-txt').innerText = player.lvl;
+            document.getElementById('score-txt').innerText = player.score;
+            document.getElementById('xp-fill').style.width = (player.xp/player.nextXp*100)+'%';
+            document.getElementById('hp-fill').style.width = (player.hp/player.maxHp*100)+'%';
+            
+            let sDiv = document.getElementById('slots');
+            sDiv.innerHTML = '';
+            player.slots.forEach(s => {
+                sDiv.innerHTML += `<div class="slot" id="slot-${s.id}">${s.icon}<div class="cd" id="cd-${s.id}"></div></div>`;
+            });
         }
 
-        function update(dt) {
-            globalTick++;
-            
-            // Player Movement (WASD + Arrows)
+        function levelUp() {
+            gameRunning = false;
+            let overlay = document.getElementById('upgrade-overlay');
+            let container = document.getElementById('upgrade-cards');
+            container.innerHTML = '';
+            overlay.style.display = 'flex';
+
+            let pool = [...SKILLS].sort(() => 0.5 - Math.random()).slice(0, 3);
+            pool.forEach(s => {
+                let card = document.createElement('div');
+                card.className = 'card';
+                card.innerHTML = `<i>${s.icon}</i><b>${s.n}</b><p>${s.d}</p>`;
+                card.onclick = () => {
+                    if(!mySkills[s.id]) {
+                        if(player.slots.length < 8) player.slots.push(s);
+                        else return;
+                    }
+                    mySkills[s.id] = (mySkills[s.id]||0) + 1;
+                    if(s.id === 'size') { player.maxHp += 20; player.hp += 20; }
+                    if(s.id === 'reg') player.hp = Math.min(player.maxHp, player.hp + 20);
+                    
+                    overlay.style.display = 'none';
+                    gameRunning = true;
+                    updateUI();
+                };
+                container.appendChild(card);
+            });
+        }
+
+        function loop() {
+            if(gameRunning && !isPaused) {
+                update();
+            }
+            draw();
+            requestAnimationFrame(loop);
+        }
+
+        function update() {
+            // Movement (WASD + Pfeiltasten)
             let mx = 0, my = 0;
-            if(input.w || input.ArrowUp) my -= 1;
-            if(input.s || input.ArrowDown) my += 1;
-            if(input.a || input.ArrowLeft) mx -= 1;
-            if(input.d || input.ArrowRight) mx += 1;
+            if(keys['w'] || keys['ArrowUp']) my -= 1;
+            if(keys['s'] || keys['ArrowDown']) my += 1;
+            if(keys['a'] || keys['ArrowLeft']) mx -= 1;
+            if(keys['d'] || keys['ArrowRight']) mx += 1;
 
             if(mx !== 0 || my !== 0) {
-                const mag = Math.hypot(mx, my);
-                const speedMult = player.speed + (mySkills.spd || 0) * 0.8;
-                
-                // Dash Skill Logic
-                if(mySkills.dash && cooldowns.dash <= 0) {
-                    if((player.lastDirection.x !== 0 && mx !== player.lastDirection.x) || (player.lastDirection.y !== 0 && my !== player.lastDirection.y)) {
-                        player.x += mx * 150; player.y += my * 150;
-                        cooldowns.dash = 3000 / mySkills.dash;
-                        effects.push({t:'dash', x:player.x, y:player.y, l:20});
-                    }
-                }
-
-                player.x += (mx/mag) * speedMult;
-                player.y += (my/mag) * speedMult;
+                let mag = Math.hypot(mx, my);
+                let speed = player.speed + (mySkills.spd||0);
+                player.x += (mx/mag) * speed;
+                player.y += (my/mag) * speed;
                 player.angle = Math.atan2(my, mx);
-                player.frame++;
-                player.lastDirection = {x: mx, y: my};
-            }
 
-            // World Bounds
-            player.x = Math.max(50, Math.min(WORLD_SIZE-50, player.x));
-            player.y = Math.max(50, Math.min(WORLD_SIZE-50, player.y));
-
-            // Camera follow
-            camera.x += (player.x - cw/2 - camera.x) * camera.lerp;
-            camera.y += (player.y - ch/2 - camera.y) * camera.lerp;
-
-            // Skill Cooldowns
-            for(let id in cooldowns) if(cooldowns[id] > 0) cooldowns[id] -= dt;
-
-            // Passive Regen (Skill reg)
-            if(mySkills.reg && globalTick % 60 === 0) {
-                player.hp = Math.min(player.maxHp, player.hp + (0.1 * mySkills.reg));
-                updateHUD();
-            }
-
-            // Skills Logic: Poison (🧪)
-            if(mySkills.poi && globalTick % 90 === 0) {
-                poisons.push({x: player.x, y: player.y, r: 60 + mySkills.poi*10, l: 300});
-            }
-
-            // Skills Logic: Walls (🧱)
-            if(mySkills.wall && globalTick % 300 === 0) {
-                walls.push({x: player.x + (Math.random()-0.5)*200, y: player.y + (Math.random()-0.5)*200, l: 600});
-                if(walls.length > 5) walls.shift();
-            }
-
-            // Skills Logic: Kettenblitz (⚡)
-            if(mySkills.bolt && cooldowns.bolt <= 0) {
-                let targets = enemies.filter(e => Math.hypot(e.x-player.x, e.y-player.y) < 500);
-                if(targets.length > 0) {
-                    let count = Math.min(targets.length, mySkills.bolt);
-                    for(let i=0; i<count; i++) {
-                        targets[i].curHp -= 30;
-                        effects.push({t:'bolt', x1:player.x, y1:player.y, x2:targets[i].x, y2:targets[i].y, l:15});
-                    }
-                    cooldowns.bolt = 4000 - (mySkills.bolt * 300);
+                // Dash (🌀)
+                if(mySkills.dash && Math.random() < 0.01) {
+                    player.x += mx * 50; player.y += my * 50;
                 }
             }
 
-            // Skills Logic: Hase (🐇)
+            // Skills: Blitz (⚡)
+            if(mySkills.bolt && Math.random() < 0.02 * mySkills.bolt) {
+                let target = enemies[Math.floor(Math.random()*enemies.length)];
+                if(target) {
+                    target.curHp -= 50;
+                    effects.push({x1: player.x, y1: player.y, x2: target.x, y2: target.y, l: 10});
+                }
+            }
+
+            // Skills: Hase (🐇)
             if(mySkills.bunny) {
                 bunny.active = true;
-                bunny.angle += 0.04;
-                bunny.x = player.x + Math.cos(bunny.angle) * 160;
-                bunny.y = player.y + Math.sin(bunny.angle) * 160;
+                bunny.angle += 0.05;
+                bunny.x = player.x + Math.cos(bunny.angle)*150;
+                bunny.y = player.y + Math.sin(bunny.angle)*150;
+                enemies.forEach(en => {
+                    if(Math.hypot(en.x-bunny.x, en.y-bunny.y) < 40) en.curHp -= 1;
+                });
             }
 
-            // Combat: Auto Shoot (🏹)
-            const fireInterval = 700 / (mySkills.fire || 1);
-            if(Date.now() - player.lastFire > fireInterval) {
-                const target = findNearestEnemy(700);
+            // Schießen
+            let fireRate = 600 / (mySkills.fire || 1);
+            if(Date.now() - player.lastFire > fireRate) {
+                let target = enemies.find(en => Math.hypot(en.x-player.x, en.y-player.y) < 600);
                 if(target) {
-                    const angle = Math.atan2(target.y - player.y, target.x - player.x);
-                    const count = mySkills.mult ? 1 + Math.floor(mySkills.mult/2) : 1;
-                    for(let i=0; i<count; i++) {
-                        const spread = (i - (count-1)/2) * 0.2;
-                        projectiles.push({
-                            x: player.x, y: player.y, 
-                            vx: Math.cos(angle + spread)*14, vy: Math.sin(angle + spread)*14, 
-                            l: 60, dmg: 10
-                        });
-                    }
+                    let a = Math.atan2(target.y-player.y, target.x-player.x);
+                    projectiles.push({x: player.x, y: player.y, vx: Math.cos(a)*12, vy: Math.sin(a)*12, l: 100});
                     player.lastFire = Date.now();
                 }
             }
 
-            // Spawn Enemies
-            if(globalTick % 60 === 0) spawnEnemy();
-
-            // Update Elements
-            updateEntities(dt);
-            updateHUD();
-        }
-
-        function spawnEnemy() {
-            const timeIdx = Math.min(14, Math.floor((Date.now() - player.startTime)/25000));
-            const base = ENEMIES[timeIdx];
-            const angle = Math.random()*Math.PI*2;
-            const x = player.x + Math.cos(angle)*900;
-            const y = player.y + Math.sin(angle)*900;
-            
-            enemies.push({
-                ...base, x, y, curHp: base.hp, maxHp: base.hp,
-                sz: 20 + timeIdx*3,
-                segments: Array(base.m==='snake'?12:0).fill({x,y}),
-                id: globalTick
-            });
-        }
-
-        function updateEntities(dt) {
-            // Projectiles
-            projectiles.forEach((p, i) => {
-                p.x += p.vx; p.y += p.vy; p.l--;
-                enemies.forEach(en => {
-                    if(Math.hypot(p.x-en.x, p.y-en.y) < en.sz + 10) {
-                        const isCrit = mySkills.crit && Math.random() < (mySkills.crit * 0.1);
-                        en.curHp -= p.dmg * (isCrit ? 2 : 1);
-                        p.l = 0;
-                        if(isCrit) effects.push({t:'text', x:en.x, y:en.y-20, txt:'CRIT!', l:30});
-                    }
-                });
-                if(p.l <= 0) projectiles.splice(i, 1);
-            });
-
-            // Enemies
+            // Enemies Update
             enemies.forEach((en, i) => {
-                // Wall Collision
-                let blocked = false;
-                walls.forEach(w => { if(Math.hypot(en.x-w.x, en.y-w.y) < 50) blocked = true; });
-
-                if(!blocked) {
-                    const angle = Math.atan2(player.y - en.y, player.x - en.x);
-                    const slow = (mySkills.ice && Math.hypot(en.x-player.x, en.y-player.y) < 300) ? 0.5 : 1;
-                    en.x += Math.cos(angle) * en.s * slow;
-                    en.y += Math.sin(angle) * en.s * slow;
-                }
+                let a = Math.atan2(player.y-en.y, player.x-en.x);
+                en.x += Math.cos(a) * en.spd;
+                en.y += Math.sin(a) * en.spd;
 
                 if(en.m === 'snake') {
                     en.segments.unshift({x: en.x, y: en.y});
                     en.segments.pop();
                 }
 
-                // Player Damage
                 if(Math.hypot(player.x-en.x, player.y-en.y) < player.size + en.sz) {
-                    const dmg = (1 / (mySkills.arm || 1));
-                    player.hp -= dmg;
+                    player.hp -= (0.5 / (mySkills.arm||1));
                 }
 
-                // Bunny Collision
-                if(bunny.active && Math.hypot(bunny.x-en.x, bunny.y-en.y) < 40) {
-                    en.curHp -= 1;
-                }
-
-                // Poison Damage
-                poisons.forEach(p => {
-                    if(Math.hypot(en.x-p.x, en.y-p.y) < p.r) en.curHp -= 0.2;
-                });
-
-                if(en.curHp <= 0) {
-                    // Vampire Skill (🧛) - Nerfed Chance
-                    if(mySkills.vamp && Math.random() < (0.02 * mySkills.vamp)) player.hp = Math.min(player.maxHp, player.hp+1);
-                    
-                    // Shard Skill (💎)
-                    if(mySkills.shrd) {
-                        for(let j=0; j<3; j++) {
-                            const sa = Math.random()*6.28;
-                            projectiles.push({x:en.x, y:en.y, vx:Math.cos(sa)*8, vy:Math.sin(sa)*8, l:20, dmg:5});
+                projectiles.forEach((p, pi) => {
+                    if(Math.hypot(p.x-en.x, p.y-en.y) < en.sz + 10) {
+                        en.curHp -= 10; projectiles.splice(pi, 1);
+                        if(en.curHp <= 0) {
+                            if(mySkills.vamp && Math.random() < 0.05) player.hp = Math.min(player.maxHp, player.hp+1);
+                            gems.push({x: en.x, y: en.y, v: 20 * (mySkills.gold||1)});
+                            enemies.splice(i, 1); player.score++; updateUI();
                         }
                     }
+                });
+            });
 
-                    const val = 20 * (mySkills.gold ? 1.5 : 1) * (mySkills.luck ? 1.2 : 1);
-                    gems.push({x: en.x, y: en.y, v: val});
-                    enemies.splice(i, 1);
-                    player.score++;
+            // Gems & XP
+            gems.forEach((g, i) => {
+                let d = Math.hypot(player.x-g.x, player.y-g.y);
+                if(d < 150 + (mySkills.mag||0)*50) {
+                    g.x += (player.x-g.x)*0.2; g.y += (player.y-g.y)*0.2;
+                    if(d < 20) {
+                        player.xp += g.v; gems.splice(i, 1);
+                        if(player.xp >= player.nextXp) { player.xp=0; player.nextXp*=1.3; player.lvl++; levelUp(); }
+                        updateUI();
+                    }
                 }
+            });
+
+            if(player.hp <= 0) location.reload();
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, cw, ch);
+            ctx.save();
+            ctx.translate(cw/2 - player.x, ch/2 - player.y);
+
+            // World
+            ctx.strokeStyle = "rgba(255,255,255,0.1)";
+            for(let x=0; x<WORLD_SIZE; x+=250) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,WORLD_SIZE); ctx.stroke(); }
+            for(let y=0; y<WORLD_SIZE; y+=250) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(WORLD_SIZE,y); ctx.stroke(); }
+
+            decorations.forEach(d => {
+                ctx.fillStyle = d.t==='tree'?'#145a32':'#566573';
+                ctx.beginPath(); ctx.arc(d.x, d.y, d.sz, 0, 6.28); ctx.fill();
             });
 
             // Gems
-            gems.forEach((g, i) => {
-                const dist = Math.hypot(player.x-g.x, player.y-g.y);
-                const magnetRange = 150 + (mySkills.mag || 0) * 80;
-                if(dist < magnetRange) {
-                    g.x += (player.x-g.x) * 0.15;
-                    g.y += (player.y-g.y) * 0.15;
-                    if(dist < 25) {
-                        player.xp += g.v;
-                        gems.splice(i, 1);
-                        if(player.xp >= player.nextXp) levelUp();
-                    }
+            ctx.fillStyle = "#3498db";
+            gems.forEach(g => { ctx.beginPath(); ctx.arc(g.x, g.y, 5, 0, 6.28); ctx.fill(); });
+
+            // Hase (🐇)
+            if(bunny.active) {
+                ctx.fillStyle = "white";
+                ctx.beginPath(); ctx.arc(bunny.x, bunny.y, 15, 0, 6.28); ctx.fill();
+                ctx.fillRect(bunny.x-5, bunny.y-25, 4, 15); ctx.fillRect(bunny.x+2, bunny.y-25, 4, 15);
+            }
+
+            // Player Model
+            ctx.save();
+            ctx.translate(player.x, player.y);
+            ctx.rotate(player.angle);
+            ctx.fillStyle = "#2980b9";
+            ctx.beginPath(); ctx.arc(0, 0, player.size, 0, 6.28); ctx.fill();
+            ctx.fillStyle = "white";
+            ctx.beginPath(); ctx.arc(15, -10, 5, 0, 6.28); ctx.fill();
+            ctx.beginPath(); ctx.arc(15, 10, 5, 0, 6.28); ctx.fill();
+            ctx.restore();
+
+            // Enemies
+            enemies.forEach(en => {
+                ctx.fillStyle = en.c;
+                if(en.m === 'snake') {
+                    en.segments.forEach(s => { ctx.beginPath(); ctx.arc(s.x, s.y, en.sz/2, 0, 6.28); ctx.fill(); });
+                } else {
+                    ctx.beginPath(); ctx.arc(en.x, en.y, en.sz, 0, 6.28); ctx.fill();
                 }
             });
 
-            // Timers
-            poisons.forEach((p, i) => { p.l--; if(p.l <= 0) poisons.splice(i, 1); });
-            walls.forEach((w, i) => { w.l--; if(w.l <= 0) walls.splice(i, 1); });
-
-            if(player.hp <= 0) { alert("SANTI SLAYER GEFALLEN! Score: " + player.score); location.reload(); }
-        }
-
-        function findNearestEnemy(range) {
-            let nearest = null;
-            let minDist = range;
-            enemies.forEach(en => {
-                const d = Math.hypot(en.x-player.x, en.y-player.y);
-                if(d < minDist) { minDist = d; nearest = en; }
+            // Effects
+            effects.forEach((ef, i) => {
+                ctx.strokeStyle = "cyan"; ctx.lineWidth = 3;
+                ctx.beginPath(); ctx.moveTo(ef.x1, ef.y1); ctx.lineTo(ef.x2, ef.y2); ctx.stroke();
+                ef.l--; if(ef.l<0) effects.splice(i, 1);
             });
-            return nearest;
+
+            // Projectiles
+            ctx.fillStyle = "yellow";
+            projectiles.forEach(p => { p.x += p.vx; p.y += p.vy; ctx.beginPath(); ctx.arc(p.x, p.y, 5, 0, 6.28); ctx.fill(); });
+
+            ctx.restore();
         }
 
-        function levelUp() {
-            gameRunning = false;
-            player.xp = 0;
-            player.lvl++;
-            player.nextXp *= 1.25;
-            
-            const overlay = document.getElementById('upgrade-overlay');
-            const deck = document.getElementById('upgrade-deck');
-            deck.innerHTML = '';
-            
-            // Luck Skill (🍀) affects rarity/choices
-            const choiceCount = mySkills.luck ? 4 : 3;
-            const choices = [...DATABASE].sort(() => 0.5 - Math.random()).slice(0, choiceCount);
-            
-            choices.forEach(skill => {
-                const card = document.createElement('div');
-                card.className = 'u-card';
-                const lv = mySkills[skill.id] || 0;
-                card.innerHTML = `<i>${skill.i}</i><b>${skill.n}</b><p>${skill.d}</p><span style="color:#27ae60">Stufe: ${lv+1}</span>`;
-                
-                card.onclick = () => {
-                    if(!mySkills[skill.id]) {
-                        if(player.slots.length < 8) player.slots.push(skill);
-                        else { alert("Slots voll! Wähle etwas, das du bereits hast."); return; }
-                    }
-                    mySkills[skill.id] = (mySkills[skill.id] || 0) + 1;
-                    
-                    // Immediate Stat Changes
-                    if(skill.id === 'size') { player.maxHp += 25; player.hp += 25; player.size += 3; }
-                    
-                    overlay.style.display = 'none';
-                    gameRunning = true;
-                    updateHUD();
-                    window.focus();
-                };
-                deck.appendChild(card);
-            });
-            overlay.style.display = 'flex';
-        }
-
-        function updateHUD() {
-            document.getElementById('lbl-lvl-top').innerText = "LV " + player.lvl;
-            document.getElementById('xp-fill').style.width = (player.xp/player.nextXp*100) + "%";
-            document.getElementById('hp-fill-ui').style.width = (player.hp/player.maxHp*100) + "%";
-            document.getElementById('hp-txt').innerText = Math.floor(player.hp) + " / " + player.maxHp;
-            document.getElementById('kill-txt').innerText = player.score;
-            
-            const timeSec = Math.floor((Date.now() - player.startTime)/1000);
-            document.getElementById('time-txt').innerText = Math.floor(timeSec/60) + ":" + (timeSec%60).toString().padStart(2,'0');
-
-            const sDiv = document.getElementById('skill-slots');
-            sDiv.innerHTML = '';
-            player.slots.forEach(s => {
-                const cdTotal = s.id === 'bolt' ? 4000 : (s.id === 'dash' ? 3000
+        init();
+    </script>
+</body>
+</html>
